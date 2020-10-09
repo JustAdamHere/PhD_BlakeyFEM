@@ -25,3 +25,4 @@
 *.out
 index.rst.txt
 build/
+data/
