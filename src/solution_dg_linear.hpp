@@ -2,7 +2,7 @@
  * @details This is a file containing declarations of the [Solution] namespace.
  * 
  * @author     Adam Matthew Blakey
- * @date       2019/12/03
+ * @date       2020/10/09
  ******************************************************************************/
 #ifndef CLASS_SOLUTIONDGLINEAR
 #define CLASS_SOLUTIONDGLINEAR
@@ -18,10 +18,6 @@ class Solution_dg_linear : public Solution
 		f_double f;
 		double epsilon;
 		f_double c;
-
-		// Computers.
-		double compute_uh(const int &a_i, const double &a_xi, const int &a_n) const override;
-		double compute_uh(const int &a_i, const double &a_xi, const int &a_n, const std::vector<double> &a_u) const override;
 
 		// Computes stiffness and load vector terms.
 		double a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_);
@@ -46,9 +42,6 @@ class Solution_dg_linear : public Solution
 		f_double get_f() const;
 		double get_epsilon() const;
 		f_double get_c() const;
-
-		// Outputters.
-		void output_solution(f_double const a_u = 0, const std::string a_filename = "../data/solution.dat") const override;
 };
 
 #endif

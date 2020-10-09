@@ -2,7 +2,7 @@
  * @details This is a file containing definitions of [Solution].
  * 
  * @author     Adam Matthew Blakey
- * @date       2019/12/07
+ * @date       2020/10/09
  ******************************************************************************/
 #include "common.hpp"
 #include "element.hpp"
@@ -23,7 +23,7 @@
 #include <vector>
 
 /******************************************************************************
- * __Solution_linear__
+ * __Solution_dg_linear__
  * 
  * @details 	The Mesh constructor, taking 1 argument for the mesh.
  * 
@@ -112,15 +112,14 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 	double A = 0;
 	double B = 0;
 
-	//int n = this->mesh->elements->get_DoF();//this->noElements + 1; // Number of nodes.
-	int n = this->mesh->elements->get_DoF() + this->mesh->get_noElements() - 1;
+	int n = this->mesh->elements->get_DoF();//this->noElements + 1; // Number of nodes.
 
 	Elements* elements = this->mesh->elements;
 
 	Matrix_full<double> stiffnessMatrix(n, n, 0);
 	std::vector<double> loadVector(n, 0);
 
-	/*for (int elementCounter=0; elementCounter<this->noElements; ++elementCounter)
+	for (int elementCounter=0; elementCounter<this->noElements; ++elementCounter)
 	{
 		Element* currentElement = (*(this->mesh->elements))[elementCounter];
 		int polynomialDegree = currentElement->get_polynomialDegree();
@@ -148,39 +147,12 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1, basis2, basis1_, basis2_));
 			}
 		}
-	}*/
-
-	for (int elementCounter=0; elementCounter<this->noElements; ++elementCounter)
-	{
-		Element* currentElement = (*(this->mesh->elements))[elementCounter];
-
-		std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementCounter);
-		for (int a=0; a<elementDoFs.size(); ++a)
-		{
-			int j = elementDoFs[a];
-			f_double basis = currentElement->basisFunction(a, 0);
-
-			loadVector[j] += this->l(currentElement, basis);
-
-			for (int b=0; b<elementDoFs.size(); ++b)
-			{
-				int i = elementDoFs[b];
-				f_double basis1  = currentElement->basisFunction(b, 0);
-				f_double basis2  = currentElement->basisFunction(a, 0);
-				f_double basis1_ = currentElement->basisFunction(b, 1);
-				f_double basis2_ = currentElement->basisFunction(a, 1);
-
-				double value = stiffnessMatrix(i, j); // Bit messy...
-				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1, basis2, basis1_, basis2_));
-			}
-		}
 	}
 
 	std::vector<double> F_(n);
 	std::vector<double> u0(n, 0);
 
-	//int m = this->mesh->elements->get_noElements(); // Only works in 1D!
-	int m = 2*this->mesh->elements->get_noElements() - 1;
+	int m = this->mesh->elements->get_noElements(); // Only works in 1D!
 	
 	for (int i=0; i<stiffnessMatrix.get_noRows(); ++i)
 		stiffnessMatrix.set(0, i, 0);
@@ -303,90 +275,4 @@ double Solution_dg_linear::compute_errorIndicator(const double &a_i) const
 	}
 	
 	return double(1)/(P*(P+1)*this->epsilon) * norm_2;
-}
-
-double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const int &a_n) const
-{
-	Element* currentElement = (*(this->mesh->elements))[a_i];
-	double J = currentElement->get_Jacobian(); // Needs to be inverse transpose of Jacobi in dimensions higher than 1.
-
-	double result = 0;
-
-	std::vector<int> elementDoFs = this->mesh->elements->get_dg_elementDoFs(a_i);
-	for (int j=0; j<elementDoFs.size(); ++j)
-	{
-		f_double basis = (*(this->mesh->elements))[a_i]->basisFunction(j, a_n);
-
-		result += this->solution[elementDoFs[j]] * basis(a_xi);
-	}
-
-	return result / pow(J, a_n);
-}
-
-double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const int &a_n, const std::vector<double> &a_u) const
-{
-	Element* currentElement = (*(this->mesh->elements))[a_i];
-	double J = currentElement->get_Jacobian(); // Needs to be inverse transpose of Jacobi in dimensions higher than 1.
-
-	double result = 0;
-
-	std::vector<int> elementDoFs = this->mesh->elements->get_dg_elementDoFs(a_i);
-	for (int j=0; j<elementDoFs.size(); ++j)
-	{
-		f_double basis = (*(this->mesh->elements))[a_i]->basisFunction(j, a_n);
-
-		result += a_u[elementDoFs[j]] * basis(a_xi);
-	}
-
-	return result / pow(J, a_n);
-}
-
-void Solution_dg_linear::output_solution(f_double const a_u, const std::string a_filename) const
-{
-	std::ofstream outputFile;
-	outputFile.open(a_filename);
-	assert(outputFile.is_open());
-
-	int n = this->mesh->get_noElements();
-	int m = this->mesh->elements->get_DoF() + this->mesh->get_noElements() - 1;
-
-	for (int i=0; i<n; ++i)
-	{
-		Element* currentElement = (*(this->mesh->elements))[i];
-
-		for (int j=0; j<=10; ++j)
-		{
-			double x  = currentElement->get_nodeCoordinates()[0] + j*((currentElement->get_nodeCoordinates()[1] - currentElement->get_nodeCoordinates()[0])/10);
-			double xi = -1 + j*double(2)/10;
-			outputFile
-				<< std::setw(26) << std::setprecision(16) << std::scientific << x
-				<< std::setw(26) << std::setprecision(16) << std::scientific << this->compute_uh(i, xi, 0);
-				if (a_u != 0)
-					outputFile << std::setw(26) << std::setprecision(16) << std::scientific << a_u(x);
-				else
-					outputFile << std::setw(26) << std::setprecision(16) << "Inf";
-			outputFile << std::endl;
-		}
-
-		double x  = currentElement->get_nodeCoordinates()[1];
-		
-		// Point at infinity allows discontinuous plotting.
-		outputFile
-			<< std::setw(26) << std::setprecision(16) << std::scientific << x
-			<< std::setw(26) << std::setprecision(16) << std::scientific << "Inf"
-			<< std::setw(26) << std::setprecision(16) << "Inf"
-		<< std::endl;
-	}
-
-	Element* lastElement = (*(this->mesh->elements))[n-1];
-	outputFile
-		<< std::setw(26) << std::setprecision(16) << std::scientific << lastElement->get_nodeCoordinates()[1]
-		<< std::setw(26) << std::setprecision(16) << std::scientific << this->solution[m];
-		if (a_u != 0)
-			outputFile << std::setw(26) << std::setprecision(16) << std::scientific << a_u(lastElement->get_nodeCoordinates()[1]);
-		else
-			outputFile << std::setw(26) << std::setprecision(16) << "Inf";
-	outputFile << std::endl;
-
-	outputFile.close();
 }
