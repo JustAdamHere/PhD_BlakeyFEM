@@ -1,0 +1,27 @@
+# Specify filepatterns you want git to ignore.
+
+*.sublime-workspace
+*.exe
+*.mod
+*.png
+*.css
+*.html
+*.tex
+*.sty
+*.js
+*.bat
+*.xml
+*.xsd
+*.xslt
+*.pickle
+*.ttf
+*.eot
+*.woff
+*.woff2
+*.buildinfo
+*.doctree
+*.svg
+*.inv
+*.out
+index.rst.txt
+build/
