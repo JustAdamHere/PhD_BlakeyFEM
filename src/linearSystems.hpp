@@ -18,6 +18,8 @@ namespace linearSystems
 {
 	void thomasInvert(const std::vector<double> a, const std::vector<double> b, const std::vector<double> c, const std::vector<double> d, std::vector<double> &solution);
 	std::vector<double> conjugateGradient(const Matrix<double> &a_matrix, const std::vector<double> &a_b, const double &a_tolerance);
+	std::vector<double> GaussJordan(const Matrix<double> &a_M, const std::vector<double> &a_b);
+	std::vector<double> direct(const Matrix<double> &a_M, const std::vector<double> &a_b);
 	double dotProduct(const std::vector<double> &a_v1, const std::vector<double> &a_v2);
 }
 

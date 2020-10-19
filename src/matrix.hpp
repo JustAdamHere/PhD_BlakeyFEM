@@ -32,6 +32,10 @@ class Matrix
 		// Setters.
 		virtual void set(const int &a_x, const int &a_y, const T &a_value) = 0;
 
+		// Miscellaneous.
+		std::vector<int> argmax  (const int &i_0, const int &i_1, const int &j_0, const int &j_1);
+		void 			 swapRows(const int &a_row1, const int &a_row2);
+
 		// Matrix-Matrix operations.
 		Matrix<T>& operator= (const Matrix<T> &a_RHS);
 		Matrix<T>& operator+=(const Matrix<T> &a_RHS);

@@ -197,4 +197,51 @@ Matrix<T>& Matrix<T>::operator/=(const T &a_RHS)
 	return *this;
 }
 
+/******************************************************************************
+ * __argmax__
+ * 
+ * @details 	
+ ******************************************************************************/
+template<class T>
+std::vector<int> Matrix<T>::argmax(const int &i_0, const int &i_1, const int &j_0, const int &j_1)
+{
+	std::vector<int> args  = {i_0, j_0};
+	T 				 M_max = item(i_0, j_0);
+
+	for (int i=i_0; i<i_1; ++i)
+		for (int j=j_0; j<j_1; ++j)
+			if(T value = item(i, j) > M_max)
+			{
+				M_max = value;
+				args[1] = j;
+				args[0] = i;
+			}
+
+	return args;
+}
+
+/******************************************************************************
+ * __argmax__
+ * 
+ * @details 	
+ ******************************************************************************/
+template<class T>
+void Matrix<T>::swapRows(const int &a_row1, const int &a_row2)
+{
+	std::vector<T> row1(get_noColumns());
+	std::vector<T> row2(get_noColumns());
+
+	for (int i=0; i<get_noColumns(); ++i)
+	{
+		row1[i] = item(i, a_row1);
+		row2[i] = item(i, a_row2);
+	}
+
+	for (int i=0; i<get_noColumns(); ++i)
+	{
+		set(i, a_row1, row2[i]);
+		set(i, a_row2, row1[i]);
+	}
+}
+
 #endif

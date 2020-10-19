@@ -8,6 +8,8 @@
  ******************************************************************************/
 
 #include "linearSystems.hpp"
+#include "matrix.hpp"
+#include "matrix_full.hpp"
 #include <cassert>
 #include <vector>
 
@@ -79,6 +81,68 @@ namespace linearSystems
 		}
 
 		return x;
+	}
+
+	// From:
+	// https://en.wikipedia.org/wiki/Gaussian_elimination
+	// It may not actually work...
+	std::vector<double> GaussJordan(const Matrix<double> &a_M, const std::vector<double> &a_b)
+	{
+		Matrix_full<double> M_ = a_M;
+
+		int m = M_.get_noRows();
+		int n = M_.get_noColumns();
+
+		int h = 0;
+		int k = 0;
+		while ((h < m) && (k < n))
+		{
+			// Find the kth pivot.
+			int i_max = M_.argmax(h, m, k, k+1)[0];
+
+			if (M_(i_max, k) == 0)
+			{
+				++k;
+			}
+			else
+			{
+				M_.swapRows(h, i_max);
+
+				for (int i=h; i<m; ++i)
+				{
+					double f = M_(i, k) / M_(h, k);
+
+					std::cout << M_(h, k) << std::endl;
+
+					// Fill zeros with lower part of pivot column.
+					M_.set(i, k, 0);
+					for (int j=k; j<n; ++j)
+						M_.set(i, j, M_(i, j) - M_(h, j)*f);
+				}
+
+				++h;
+				++k;
+			}
+		}
+
+		//std::vector<double> x(a_M.get_noColumns(), 0);
+		std::vector<double> x = M_*a_b;
+
+		/*for (int i=0; i<M_.get_noColumns(); ++i)
+		{
+			for (int j=0; j<M_.get_noRows(); ++j)
+			{
+				std::cout << M_(i, j) << " ";
+			}
+			std::cout << std::endl;
+		}*/
+
+		return x;
+	}
+
+	std::vector<double> direct(const Matrix<double> &a_M, const std::vector<double> &a_b)
+	{
+
 	}
 
 	double dotProduct(const std::vector<double> &a_v1, const std::vector<double> &a_v2)

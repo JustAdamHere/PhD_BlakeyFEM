@@ -8,6 +8,8 @@
 #define CLASS_SOLUTIONDGLINEAR
 
 #include "common.hpp"
+#include "matrix.hpp"
+#include "matrix_full.hpp"
 #include "solution.hpp"
 #include <vector>
 
@@ -16,11 +18,9 @@ class Solution_dg_linear : public Solution
 	private:
 		// Problem data.
 		f_double f;
-		double epsilon;
-		f_double c;
 
 		// Computes stiffness and load vector terms.
-		double a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_);
+		double a(Element* currentElement, f_double &basis1_, f_double &basis2_);
 		double l(Element* currentElement, f_double &basis);
 
 		// Computers.
@@ -29,7 +29,7 @@ class Solution_dg_linear : public Solution
 	public:
 		// Constructors.
 		Solution_dg_linear(Mesh* const &a_mesh, Solution_dg_linear* const &a_solution);
-		Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f, const double &a_epsilon, f_double const &a_c);
+		Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f);
 
 		// Solvers.
 		void Solve(const double &a_cgTolerance);
@@ -40,8 +40,6 @@ class Solution_dg_linear : public Solution
 
 		// Getters.
 		f_double get_f() const;
-		double get_epsilon() const;
-		f_double get_c() const;
 };
 
 #endif

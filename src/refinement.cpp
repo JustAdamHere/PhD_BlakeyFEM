@@ -258,7 +258,7 @@ namespace refinement
 		std::ofstream outputFile;
 		if (a_output)
 		{
-			outputFile.open("../data/convergence.dat");
+			outputFile.open("./data/convergence.dat");
 			assert(outputFile.is_open());
 		}
 
@@ -365,7 +365,7 @@ namespace refinement
 		std::ofstream outputFile;
 		if (a_output)
 		{
-			outputFile.open("../data/convergence.dat");
+			outputFile.open("./data/convergence.dat");
 			assert(outputFile.is_open());
 		}
 
