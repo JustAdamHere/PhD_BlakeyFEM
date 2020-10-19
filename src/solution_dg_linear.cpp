@@ -68,10 +68,25 @@ double Solution_dg_linear::l(Element* currentElement, f_double &basis)
 
 	// return integral;
 
-	return 0;
+	double J = currentElement->get_Jacobian();
+	double integral = 0;
+
+	std::vector<double> coordinates;
+	std::vector<double> weights;
+	currentElement->get_elementQuadrature(coordinates, weights);
+
+	for (int i=0; i<coordinates.size(); ++i)
+	{
+		double f_value = this->f(currentElement->mapLocalToGlobal(coordinates[i]));
+		double b_value = basis(coordinates[i]);
+		
+		integral += b_value*f_value*weights[i]*J;
+	}
+
+	return integral;
 }
 
-double Solution_dg_linear::a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_)
+double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_double &basis2_)
 {
 	// double J = currentElement->get_Jacobian();
 	// double integral = 0;
@@ -114,9 +129,7 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1, f_double
 		integral += a*a_value*weights[i]/J;
 	}
 
-	//return integral;
-
-	return 0;
+	return integral;
 }
 
 /******************************************************************************
@@ -157,7 +170,9 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		for (int a=0; a<elementDoFs.size(); ++a)
 		{
 			int j = elementDoFs[a];
-			loadVector[j] += 0;//...;
+			f_double basis = currentElement->basisFunction(a, 0);
+
+			loadVector[j] += this->l(currentElement, basis);
 
 			for (int b=0; b<elementDoFs.size(); ++b)
 			{
@@ -175,7 +190,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				double x_right = currentElement->get_nodeCoordinates()[1];
 
 				double value = stiffnessMatrix(i, j);
-				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1, basis2, basis1_, basis2_));
+				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1_, basis2_));
 			}
 		}
 	}

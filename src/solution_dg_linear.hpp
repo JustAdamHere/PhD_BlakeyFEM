@@ -20,7 +20,7 @@ class Solution_dg_linear : public Solution
 		f_double f;
 
 		// Computes stiffness and load vector terms.
-		double a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_);
+		double a(Element* currentElement, f_double &basis1_, f_double &basis2_);
 		double l(Element* currentElement, f_double &basis);
 
 		// Computers.
