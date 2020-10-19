@@ -264,6 +264,62 @@ void Matrix_full<T>::set(const int &a_x, const int &a_y, const T &a_value)
 }
 
 /******************************************************************************
+ * __calculate_determinant__
+ * 
+ * @details 	
+ ******************************************************************************/
+template<class T>
+T Matrix_full<T>::calculate_determinant()
+{
+	assert(get_noColumns() == get_noRows());
+
+	double determinant = 0;
+
+	int n = get_noColumns();
+	if (n == 1)
+	{
+		determinant = item(0, 0);
+	}
+	else if (n == 2)
+	{
+		determinant = item(0, 0)*item(1, 1) - item(1, 0)*item(0, 1);
+	}
+	else
+	{
+		for (int k=0; k<n; ++k)
+		{
+			Matrix_full<T> subMatrix(n-1, n-1);
+
+			for (int i=0; i<n-1; ++i)
+			{
+				for (int j=0; j<n-1; ++j)
+				{
+					int a = (i+1) % n;
+					int b = (j+1) % n;
+
+					subMatrix.set(i, j, item(a, b));
+				}
+			}
+
+			determinant += item(k, 0)*subMatrix.calculate_determinant();
+		}
+	}
+
+	return determinant;
+}
+
+/******************************************************************************
+ * __calculate_adjoint__
+ * 
+ * @details 	
+ ******************************************************************************/
+template<class T>
+Matrix_full<T> calculate_adjoint()
+{
+	// To do!
+}
+
+/******************************************************************************
  * STANDALONE VECTOR TENSORISATION -- IS THIS THE BEST PLACE FOR IT?!?!?!
 ******************************************************************************/
 template<class T>

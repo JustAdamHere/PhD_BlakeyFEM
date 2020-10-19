@@ -142,7 +142,14 @@ namespace linearSystems
 
 	std::vector<double> direct(const Matrix<double> &a_M, const std::vector<double> &a_b)
 	{
+		int n = a_M.get_noRows();
+		Matrix_full<double> M_ = a_M.calculate_adjoint();
 
+		M_ /= a_M.calculate_determinant();
+
+		std::vector<double> x = M_*a_b;
+
+		return x;
 	}
 
 	double dotProduct(const std::vector<double> &a_v1, const std::vector<double> &a_v2)

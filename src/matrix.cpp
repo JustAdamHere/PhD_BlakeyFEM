@@ -8,6 +8,7 @@
 #define CLASS_SRC_MATRIX
 
 #include "matrix.hpp"
+#include <cassert>
 #include <cmath>
 #include <iostream>
 

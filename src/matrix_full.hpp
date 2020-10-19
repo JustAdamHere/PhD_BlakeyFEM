@@ -52,6 +52,10 @@ class Matrix_full: public Matrix<T>
 		// Getters.
 		int get_noRows() const;
 		int get_noColumns() const;
+
+		// Calculators.
+		Matrix_full<T> calculate_adjoint();
+		T              calculate_determinant();
 		
 		// Setters.
 		void set(const int &a_x, const int &a_y, const T &a_value);
