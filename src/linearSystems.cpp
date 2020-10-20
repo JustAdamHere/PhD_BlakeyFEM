@@ -148,9 +148,7 @@ namespace linearSystems
 			for (int j=0; j<n; ++j)
 				M_.set(i, j, a(i, n+j));
 
-		//std::vector<double> x = M_*a_b;
-		Matrix_full<double> wow = test*M_;
-		std::vector<double> x = wow*a_b;
+		std::vector<double> x = M_*a_b;
 
 		return x;
 	}
