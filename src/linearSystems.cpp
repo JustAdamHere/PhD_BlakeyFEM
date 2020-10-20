@@ -83,49 +83,91 @@ namespace linearSystems
 		return x;
 	}
 
-	// From:
-	// https://en.wikipedia.org/wiki/Gaussian_elimination
-	// It may not actually work...
+	// Modified from:
+	// http://www.cplusplus.com/forum/beginner/124448/
 	std::vector<double> GaussJordan(const Matrix<double> &a_M, const std::vector<double> &a_b)
 	{
-		Matrix_full<double> M_ = a_M;
+		assert(a_M.get_noColumns() == a_M.get_noRows());
 
-		int m = M_.get_noRows();
-		int n = M_.get_noColumns();
+		int n = a_M.get_noColumns();
+		Matrix_full<double> a(n, 2*n, 0);
 
-		int h = 0;
-		int k = 0;
-		while ((h < m) && (k < n))
+		// Sets coefficients of matrix correctly.
+		for (int i=0; i<n; ++i)
+			for (int j=0; j<n; ++j)
+				a.set(i, j, a_M(i, j));
+
+		/*for (i = 1; i <= n; i++)
+			for (j = 1; j <= 2 * n; j++)
+				if (j == (i + n))
+					a[i][j] = 1;*/
+
+		for (int i=0; i<n; ++i)
+			a.set(i, i+n, 1);
+
+		// Raw output.
+		std::cout << "raw output: " << std::endl;
+		for (int i=0; i<n; ++i)
 		{
-			// Find the kth pivot.
-			int i_max = M_.argmax(h, m, k, k+1)[0];
-
-			if (M_(i_max, k) == 0)
-			{
-				++k;
-			}
-			else
-			{
-				M_.swapRows(h, i_max);
-
-				for (int i=h; i<m; ++i)
-				{
-					double f = M_(i, k) / M_(h, k);
-
-					std::cout << M_(h, k) << std::endl;
-
-					// Fill zeros with lower part of pivot column.
-					M_.set(i, k, 0);
-					for (int j=k; j<n; ++j)
-						M_.set(i, j, M_(i, j) - M_(h, j)*f);
-				}
-
-				++h;
-				++k;
-			}
+			for (int j=0; j<2*n; ++j)
+				std::cout << a(i, j) << "    ";
+			std::cout << std::endl;
 		}
 
-		//std::vector<double> x(a_M.get_noColumns(), 0);
+		// Partial pivoting.
+		/*for (int i=n-1; i>0; --i)
+		{
+			if (a(i-1, 1) < a(i, 1))
+				for (int j=0; j<2*n; ++j)
+				{
+					double d = a(i, j);
+					a.set(i,   j, a(i-1, j));
+					a.set(i-1, j, d);
+				}
+		}
+		std::cout << "pivoted output: " << std::endl;
+		for (int i=0; i<n; ++i)
+		{
+			for (int j=0; j<2*n; ++j)
+				std::cout << a(i, j) << "    ";
+			std::cout << std::endl;
+		}*/
+		
+		// Reducing to diagonal matrix.
+		for (int i=0; i<n; ++i)
+		{
+			for (int j=0; j<n; ++j)
+				if (j != i)
+				{
+					double d = a(j, i) / a(i, i);
+					for (int k=0; k<2*n; ++k)
+						a.set(j, k, a(j, k) - a(i, k)*d);
+				}
+		}
+
+		// Reducing to unit matrix.
+		for (int i=0; i<n; ++i)
+		{
+			double d = a(i, i);
+			for (int j=0; j<2*n; ++j)
+				a.set(i, j, a(i, j)/d);
+		}
+
+		std::cout << "your solutions: " << std::endl;
+		for (int i=0; i<n; ++i)
+		{
+			for (int j=n; j<2*n; ++j)
+				std::cout << a(i, j) << "    ";
+			std::cout << std::endl;
+		}
+
+		// Setting the inverse.
+		Matrix_full<double> M_(n, n);
+
+		for (int i=0; i<n; ++i)
+			for (int j=0; j<n; ++j)
+				M_.set(i, j, a(i, n+j));
+
 		std::vector<double> x = M_*a_b;
 
 		/*for (int i=0; i<M_.get_noColumns(); ++i)
