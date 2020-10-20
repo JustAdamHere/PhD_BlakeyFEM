@@ -140,12 +140,12 @@ namespace linearSystems
 		return x;
 	}
 
-	std::vector<double> direct(const Matrix<double> &a_M, const std::vector<double> &a_b)
+	std::vector<double> direct(const Matrix_full<double> &a_M, const std::vector<double> &a_b)
 	{
 		int n = a_M.get_noRows();
-		Matrix_full<double> M_ = a_M.calculate_adjoint();
+		Matrix_full<double> M_ = a_M.calculate_adjugate();
 
-		M_ /= a_M.calculate_determinant();
+		//M_ /= a_M.calculate_determinant();
 
 		std::vector<double> x = M_*a_b;
 

@@ -269,7 +269,7 @@ void Matrix_full<T>::set(const int &a_x, const int &a_y, const T &a_value)
  * @details 	
  ******************************************************************************/
 template<class T>
-T Matrix_full<T>::calculate_determinant()
+T Matrix_full<T>::calculate_determinant() const
 {
 	assert(get_noColumns() == get_noRows());
 
@@ -314,9 +314,9 @@ T Matrix_full<T>::calculate_determinant()
  * @details 	
  ******************************************************************************/
 template<class T>
-Matrix_full<T> calculate_adjoint()
+Matrix_full<T> Matrix_full<T>::calculate_adjugate() const
 {
-	// To do!
+	return *this;
 }
 
 /******************************************************************************
