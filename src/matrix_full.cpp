@@ -195,7 +195,7 @@ Matrix_full<T> Matrix_full<T>::operator*(const Matrix<T> &a_RHS)
 	for (int i=0; i<newColumns; ++i)
 		for (int j=0; j<newRows; ++j)
 			for (int k=0; k<this->get_noRows(); ++k)
-				tempMatrix(i, j) += item(i, k) * a_RHS(k, j);
+				tempMatrix.set(i, j, tempMatrix(i, j) + item(i, k)*a_RHS(k, j));
 
 	return tempMatrix;
 }

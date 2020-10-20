@@ -89,6 +89,8 @@ namespace linearSystems
 	{
 		assert(a_M.get_noColumns() == a_M.get_noRows());
 
+		Matrix_full<double> test(a_M);
+
 		int n = a_M.get_noColumns();
 		Matrix_full<double> a(n, 2*n, 0);
 
@@ -97,22 +99,8 @@ namespace linearSystems
 			for (int j=0; j<n; ++j)
 				a.set(i, j, a_M(i, j));
 
-		/*for (i = 1; i <= n; i++)
-			for (j = 1; j <= 2 * n; j++)
-				if (j == (i + n))
-					a[i][j] = 1;*/
-
 		for (int i=0; i<n; ++i)
 			a.set(i, i+n, 1);
-
-		// Raw output.
-		std::cout << "raw output: " << std::endl;
-		for (int i=0; i<n; ++i)
-		{
-			for (int j=0; j<2*n; ++j)
-				std::cout << a(i, j) << "    ";
-			std::cout << std::endl;
-		}
 
 		// Partial pivoting.
 		/*for (int i=n-1; i>0; --i)
@@ -153,14 +141,6 @@ namespace linearSystems
 				a.set(i, j, a(i, j)/d);
 		}
 
-		std::cout << "your solutions: " << std::endl;
-		for (int i=0; i<n; ++i)
-		{
-			for (int j=n; j<2*n; ++j)
-				std::cout << a(i, j) << "    ";
-			std::cout << std::endl;
-		}
-
 		// Setting the inverse.
 		Matrix_full<double> M_(n, n);
 
@@ -168,16 +148,9 @@ namespace linearSystems
 			for (int j=0; j<n; ++j)
 				M_.set(i, j, a(i, n+j));
 
-		std::vector<double> x = M_*a_b;
-
-		/*for (int i=0; i<M_.get_noColumns(); ++i)
-		{
-			for (int j=0; j<M_.get_noRows(); ++j)
-			{
-				std::cout << M_(i, j) << " ";
-			}
-			std::cout << std::endl;
-		}*/
+		//std::vector<double> x = M_*a_b;
+		Matrix_full<double> wow = test*M_;
+		std::vector<double> x = wow*a_b;
 
 		return x;
 	}

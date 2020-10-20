@@ -2,16 +2,20 @@
 #include "./src/matrix.hpp"
 #include "./src/matrix_full.hpp"
 #include <iostream>
+#include <random>
+#include <ctime>
 #include <vector>
 
 int main()
 {
-	Matrix_full<double> M(4, 4, 0);
-	M.set(0, 0, 2);
-	M.set(0, 1, 7);
-	M.set(1, 1, 1);
-	M.set(2, 2, 1);
-	M.set(3, 3, 1);
+	std::srand(std::time(NULL));
+
+	int n = 4;
+
+	Matrix_full<double> M(n, n, 0);
+	for (int i=0; i<n; ++i)
+		for (int j=0; j<n; ++j)
+			M.set(i, j, double(std::rand() % 1000)/1000);
 
 	std::vector<double> v(4, 1);
 
