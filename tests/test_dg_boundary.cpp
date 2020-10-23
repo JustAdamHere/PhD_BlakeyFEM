@@ -43,7 +43,7 @@ int main()
 {
 	// Sets up problem.
 	Mesh*     myMesh     = new Mesh(8);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, one, 1e-3, one);
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, one);
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	mySolution->Solve(1e-10);

@@ -3,7 +3,7 @@
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 TEST_DIRS ?= ./tests
-TEST_FILE ?= test_boundary
+TEST_FILE ?= test_dg_boundary
 
 TARGET_EXEC ?= $(TEST_FILE).out
 

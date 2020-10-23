@@ -8,6 +8,8 @@
  ******************************************************************************/
 
 #include "linearSystems.hpp"
+#include "matrix.hpp"
+#include "matrix_full.hpp"
 #include <cassert>
 #include <vector>
 
@@ -77,6 +79,88 @@ namespace linearSystems
 			errorNorm = sqrt(r_2);
 			++noIterations;
 		}
+
+		return x;
+	}
+
+	// Modified from:
+	// http://www.cplusplus.com/forum/beginner/124448/
+	std::vector<double> GaussJordan(const Matrix<double> &a_M, const std::vector<double> &a_b)
+	{
+		assert(a_M.get_noColumns() == a_M.get_noRows());
+
+		Matrix_full<double> test(a_M);
+
+		int n = a_M.get_noColumns();
+		Matrix_full<double> a(n, 2*n, 0);
+
+		// Sets coefficients of matrix correctly.
+		for (int i=0; i<n; ++i)
+			for (int j=0; j<n; ++j)
+				a.set(i, j, a_M(i, j));
+
+		for (int i=0; i<n; ++i)
+			a.set(i, i+n, 1);
+
+		// Partial pivoting.
+		/*for (int i=n-1; i>0; --i)
+		{
+			if (a(i-1, 1) < a(i, 1))
+				for (int j=0; j<2*n; ++j)
+				{
+					double d = a(i, j);
+					a.set(i,   j, a(i-1, j));
+					a.set(i-1, j, d);
+				}
+		}
+		std::cout << "pivoted output: " << std::endl;
+		for (int i=0; i<n; ++i)
+		{
+			for (int j=0; j<2*n; ++j)
+				std::cout << a(i, j) << "    ";
+			std::cout << std::endl;
+		}*/
+		
+		// Reducing to diagonal matrix.
+		for (int i=0; i<n; ++i)
+		{
+			for (int j=0; j<n; ++j)
+				if (j != i)
+				{
+					double d = a(j, i) / a(i, i);
+					for (int k=0; k<2*n; ++k)
+						a.set(j, k, a(j, k) - a(i, k)*d);
+				}
+		}
+
+		// Reducing to unit matrix.
+		for (int i=0; i<n; ++i)
+		{
+			double d = a(i, i);
+			for (int j=0; j<2*n; ++j)
+				a.set(i, j, a(i, j)/d);
+		}
+
+		// Setting the inverse.
+		Matrix_full<double> M_(n, n);
+
+		for (int i=0; i<n; ++i)
+			for (int j=0; j<n; ++j)
+				M_.set(i, j, a(i, n+j));
+
+		std::vector<double> x = M_*a_b;
+
+		return x;
+	}
+
+	std::vector<double> direct(const Matrix_full<double> &a_M, const std::vector<double> &a_b)
+	{
+		int n = a_M.get_noRows();
+		Matrix_full<double> M_ = a_M.calculate_adjugate();
+
+		//M_ /= a_M.calculate_determinant();
+
+		std::vector<double> x = M_*a_b;
 
 		return x;
 	}

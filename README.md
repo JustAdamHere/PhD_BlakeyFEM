@@ -10,3 +10,9 @@ g++ common.cpp element.cpp linearSystems.cpp matrix.cpp matrix_full.cpp mesh.cpp
 ```
 g++ common.cpp element.cpp linearSystems.cpp matrix.cpp matrix_full.cpp mesh.cpp refinement.cpp quadrature.cpp solution.cpp solution_linear.cpp solution_nonlinear.cpp solution_dg_linear.cpp ../tests/h_dg_boundary.cpp -o ../build/h_dg_boundary.exe; ../build/h_dg_boundary.exe
 ```
+```
+cd "/cygdrive/c/Users/adam/Blakey Cloud/Documents/Education/University of Nottingham/PhD/Programming Tests/PhD Blakey FEM/PhD_BlakeyFEM/"
+```
+```
+cd /mnt/c/Users/adam/'Blakey Cloud'/Documents/Education/'University of Nottingham'/PhD/'Programming Tests'/'PhD Blakey FEM'/PhD_BlakeyFEM/
+```
