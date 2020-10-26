@@ -118,6 +118,11 @@ double Element::get_Jacobian() const
 	return (get_nodeCoordinates()[1] - get_nodeCoordinates()[0])/2;
 }
 
+f_double Element::basisLegendre(const int &a_n, const int &a_i)
+{
+	return quadrature::legendrePolynomial(a_n, a_i);
+}
+
 /******************************************************************************
  * __basisFunction__
  * 

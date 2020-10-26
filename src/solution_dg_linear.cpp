@@ -135,7 +135,7 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 double Solution_dg_linear::b(const int &faceNo, f_double &leftBasis1, f_double &leftBasis2, f_double &leftBasis1_, f_double &leftBasis2_, f_double &rightBasis1, f_double &rightBasis2, f_double &rightBasis1_, f_double &rightBasis2_)
 {
 	// TEMPORARY: How do I get the correct Jacobian here?
-	double J = (*(this->mesh->elements))[faceNo]->get_Jacobian();
+	double J = (*(this->mesh->elements))[0]->get_Jacobian();
 
 	double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo];
 	double integral = 0;
@@ -221,17 +221,17 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		for (int a=0; a<elementDoFs.size(); ++a)
 		{
 			int j = elementDoFs[a];
-			f_double basis = currentElement->basisFunction(a, 0);
+			f_double basis = currentElement->basisLegendre(a, 0);
 
 			loadVector[j] += this->l(currentElement, basis);
 
 			for (int b=0; b<elementDoFs.size(); ++b)
 			{
 				int i = elementDoFs[b];
-				f_double basis1  = currentElement->basisFunction(b, 0);
-				f_double basis2  = currentElement->basisFunction(a, 0);
-				f_double basis1_ = currentElement->basisFunction(b, 1);
-				f_double basis2_ = currentElement->basisFunction(a, 1);
+				f_double basis1  = currentElement->basisLegendre(b, 0);
+				f_double basis2  = currentElement->basisLegendre(a, 0);
+				f_double basis1_ = currentElement->basisLegendre(b, 1);
+				f_double basis2_ = currentElement->basisLegendre(a, 1);
 
 				// Left boundary
 				double x_left = currentElement->get_nodeCoordinates()[0];
@@ -267,16 +267,14 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			for (int b=0; b<prevElementDoFs.size(); ++b)
 			{
 				int i = prevElementDoFs[b];
-				f_double leftBasis1   = prevElement->basisFunction(b, 0);
-				f_double leftBasis2   = prevElement->basisFunction(a, 0);
-				f_double leftBasis1_  = prevElement->basisFunction(b, 1);
-				f_double leftBasis2_  = prevElement->basisFunction(a, 1);
-				f_double rightBasis1  = nextElement->basisFunction(b, 0);
-				f_double rightBasis2  = nextElement->basisFunction(a, 0);
-				f_double rightBasis1_ = nextElement->basisFunction(b, 1);
-				f_double rightBasis2_ = nextElement->basisFunction(a, 1);
-
-				std::cout << "WOW " << i << " " << j << std::endl;
+				f_double leftBasis1   = prevElement->basisLegendre(b, 0);
+				f_double leftBasis2   = prevElement->basisLegendre(a, 0);
+				f_double leftBasis1_  = prevElement->basisLegendre(b, 1);
+				f_double leftBasis2_  = prevElement->basisLegendre(a, 1);
+				f_double rightBasis1  = nextElement->basisLegendre(b, 0);
+				f_double rightBasis2  = nextElement->basisLegendre(a, 0);
+				f_double rightBasis1_ = nextElement->basisLegendre(b, 1);
+				f_double rightBasis2_ = nextElement->basisLegendre(a, 1);
 
 				double value = stiffnessMatrix(i, j); // Bit messy...
 				stiffnessMatrix.set(i, j, value + this->b(faceNo, leftBasis1, leftBasis2, leftBasis1_, leftBasis2_, rightBasis1, rightBasis2, rightBasis1_, rightBasis2_)); // Call to this will change soon...
@@ -286,21 +284,58 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 	// Exterior face loop.
 	std::vector<int> exteriorFaces = {0, this->mesh->get_noNodes()-1};
-	for (int faceNo=0; faceNo<exteriorFaces.size(); ++faceNo)
+	for (int faceCounter=0; faceCounter<exteriorFaces.size(); ++faceCounter)
 	{
 		int elementNo;
-		if (faceNo == 0)
+		if (faceCounter == 0)
 			elementNo = 0;
-		else if(faceNo == this->mesh->get_noNodes()-1)
+		else if(faceCounter == 1)
 			elementNo = this->mesh->get_noElements()-1;
 
-		Element* currentElement = (*(this->mesh->elements))[elementNo];
+		int faceNo = exteriorFaces[faceCounter];
 
-		// TO FINISH
+		Element* currentElement = (*(this->mesh->elements))[elementNo];
+		std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+		// I'M VERY UNSURE IF THIS IS CORRECT. A LITTLE UNSURE ON PLACEMENT OF EXTERIOR FACE DOFS.
+		for (int a=0; a<elementDoFs.size(); ++a)
+		{
+			int j = elementDoFs[a];
+
+			for (int b=0; b<elementDoFs.size(); ++b)
+			{
+				int i = elementDoFs[b];
+				f_double basis1  = currentElement->basisLegendre(b, 0);
+				f_double basis2  = currentElement->basisLegendre(a, 0);
+				f_double basis1_ = currentElement->basisLegendre(b, 1);
+				f_double basis2_ = currentElement->basisLegendre(a, 1);
+
+				double value = stiffnessMatrix(i, j); // Bit messy...
+				//stiffnessMatrix.set(i, j, value + this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1)); // Final 4 arguments are not important on exterior boundaries.
+				this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1);
+			}
+		}
 	}
 
 
-	this->solution.resize(n, 0);
+
+	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
+	{
+		for (int j=0; j<stiffnessMatrix.get_noRows(); ++j)
+			std::cout << stiffnessMatrix(i, j) << " ";
+		std::cout << std::endl;
+	}
+
+	std::cout << std::endl << std::endl;
+
+	for (int i=0; i<loadVector.size(); ++i)
+		std::cout << loadVector[i] << std::endl;
+
+
+
+	this->solution = linearSystems::conjugateGradient(stiffnessMatrix, loadVector, 1e-5);
+	//this->solution = linearSystems::GaussJordan(stiffnessMatrix, loadVector);
+	//this->solution.resize(n, 0);
 
 
 
