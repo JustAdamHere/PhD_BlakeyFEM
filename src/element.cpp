@@ -546,6 +546,11 @@ int Elements::get_DoF() const
 	return this->startDoFs.back();
 }
 
+int Elements::get_dg_DoF() const
+{
+	return this->startDoFs.back() + this->noElements - 1;
+}
+
 std::vector<double> Elements::get_nodeCoordinates() const
 {
 	return this->nodeCoordinates;

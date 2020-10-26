@@ -132,7 +132,7 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 	return integral;
 }
 
-double Solution_dg_linear::b(const int &faceNo, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_)
+double Solution_dg_linear::b(const int &faceNo, f_double &leftBasis1, f_double &leftBasis2, f_double &leftBasis1_, f_double &leftBasis2_, f_double &rightBasis1, f_double &rightBasis2, f_double &rightBasis1_, f_double &rightBasis2_)
 {
 	// TEMPORARY: How do I get the correct Jacobian here?
 	double J = (*(this->mesh->elements))[faceNo]->get_Jacobian();
@@ -153,27 +153,27 @@ double Solution_dg_linear::b(const int &faceNo, f_double &basis1, f_double &basi
 	// Left boundary.
 	if (faceNo == 0)
 	{
-		u_0_jump    = basis1(currentFace);
-		v_0_jump    = basis2(currentFace);
-		u_1_average = basis1(currentFace);
-		v_1_average = basis2(currentFace);
+		u_0_jump    = leftBasis1 (currentFace);
+		v_0_jump    = leftBasis2 (currentFace);
+		u_1_average = leftBasis1_(currentFace);
+		v_1_average = leftBasis2_(currentFace);
 	}
 	// Right boundary.
 	else if (faceNo == this->mesh->get_noNodes())
 	{
-		u_0_jump    = -basis1(currentFace);
-		v_0_jump    = -basis2(currentFace);
-		u_1_average =  basis1(currentFace);
-		v_1_average =  basis2(currentFace);
+		u_0_jump    = -leftBasis1 (currentFace);
+		v_0_jump    = -leftBasis2 (currentFace);
+		u_1_average =  leftBasis1_(currentFace);
+		v_1_average =  leftBasis2_(currentFace);
 	}
 	// Interior element boundary.
 	else
 	{
 		// I think maybe we'll actually need 8 different basis functions?!
-		u_0_jump    = jump   (basis1,  basis1,  currentFace); // Needs modifying.
-		v_0_jump    = jump   (basis2,  basis2,  currentFace); // Needs modifying.
-		u_1_average = average(basis1_, basis1_, currentFace); // Needs modifying.
-		v_1_average = average(basis2_, basis2_, currentFace); // Needs modifying.
+		u_0_jump    = jump   (leftBasis1,  rightBasis1,  currentFace); // Needs modifying.
+		v_0_jump    = jump   (leftBasis2,  rightBasis2,  currentFace); // Needs modifying.
+		u_1_average = average(leftBasis1_, rightBasis1_, currentFace); // Needs modifying.
+		v_1_average = average(leftBasis2_, rightBasis2_, currentFace); // Needs modifying.
 	}
 	
 	integral = - u_1_average*v_0_jump + theta*v_1_average*u_0_jump + sigma*u_0_jump*v_0_jump;
@@ -190,11 +190,11 @@ double Solution_dg_linear::b(const int &faceNo, f_double &basis1, f_double &basi
  * 					local variable 'solution'.
  ******************************************************************************/
 void Solution_dg_linear::Solve(const double &a_cgTolerance)
-{
+{	
 	double A = 0;
 	double B = 0;
 
-	int n = this->mesh->elements->get_DoF();
+	int n = this->mesh->elements->get_dg_DoF();
 
 	Elements* elements = this->mesh->elements;
 
@@ -212,12 +212,12 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 	// int(u'v') + 
 
-
+	// Element loop.
 	for (int elementNo = 0; elementNo<this->noElements; ++elementNo)
 	{
 		Element* currentElement = (*(this->mesh->elements))[elementNo];
 
-		std::vector<int> elementDoFs = elements->get_elementDoFs(elementNo);
+		std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
 		for (int a=0; a<elementDoFs.size(); ++a)
 		{
 			int j = elementDoFs[a];
@@ -246,9 +246,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		}
 	}
 
-	
-
-	for (int faceNo = 0; faceNo<this->mesh->get_noNodes(); ++faceNo) // Only works in 1D
+	// Interior face loop.
+	for (int faceNo = 1; faceNo<this->mesh->get_noNodes()-1; ++faceNo) // Only works in 1D
 	{
 		double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo]; // May need modifying
 
@@ -258,8 +257,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		Element* prevElement = (*(this->mesh->elements))[prevElementNo];
 		Element* nextElement = (*(this->mesh->elements))[nextElementNo];
 		
-		std::vector<int> prevElementDoFs = elements->get_elementDoFs(prevElementNo);
-		std::vector<int> nextElementDoFs = elements->get_elementDoFs(nextElementNo);
+		std::vector<int> prevElementDoFs = elements->get_dg_elementDoFs(prevElementNo);
+		std::vector<int> nextElementDoFs = elements->get_dg_elementDoFs(nextElementNo);
 
 		for (int a=0; a<nextElementDoFs.size(); ++a)
 		{
@@ -277,16 +276,31 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				f_double rightBasis1_ = nextElement->basisFunction(b, 1);
 				f_double rightBasis2_ = nextElement->basisFunction(a, 1);
 
+				std::cout << "WOW " << i << " " << j << std::endl;
+
 				double value = stiffnessMatrix(i, j); // Bit messy...
-				stiffnessMatrix.set(i, j, value + this->b(faceNo, leftBasis1, leftBasis2, leftBasis1_, leftBasis2_)); // Call to this will change soon...
+				stiffnessMatrix.set(i, j, value + this->b(faceNo, leftBasis1, leftBasis2, leftBasis1_, leftBasis2_, rightBasis1, rightBasis2, rightBasis1_, rightBasis2_)); // Call to this will change soon...
 			}
 		}
 	}
 
+	// Exterior face loop.
+	std::vector<int> exteriorFaces = {0, this->mesh->get_noNodes()-1};
+	for (int faceNo=0; faceNo<exteriorFaces.size(); ++faceNo)
+	{
+		int elementNo;
+		if (faceNo == 0)
+			elementNo = 0;
+		else if(faceNo == this->mesh->get_noNodes()-1)
+			elementNo = this->mesh->get_noElements()-1;
 
-	this->solution .resize(n, 0);
+		Element* currentElement = (*(this->mesh->elements))[elementNo];
+
+		// TO FINISH
+	}
 
 
+	this->solution.resize(n, 0);
 
 
 

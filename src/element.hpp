@@ -67,6 +67,7 @@ class Elements
 		std::vector<double> get_nodeCoordinates() const;
 		const std::vector<double>* get_rawNodeCoordinates() const;
 		int get_DoF() const;
+		int get_dg_DoF() const;
 		std::vector<int> get_polynomialDegrees() const;
 		void calculateDoFs();
 };
