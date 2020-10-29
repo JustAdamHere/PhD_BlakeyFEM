@@ -124,14 +124,15 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 
 	for (int i=0; i<coordinates.size(); ++i)
 	{
-		double a_value = basis1_(coordinates[i]) * basis2_(coordinates[i]);
+		double b_value = basis1_(coordinates[i]) * basis2_(coordinates[i]);
 
-		integral += a*a_value*weights[i]/J;
+		integral += a*b_value*weights[i]/J;
 	}
 
 	return integral;
 }
 
+// See Andrea book on page 20 for maybe a better way of doing all this...
 double Solution_dg_linear::b(const int &faceNo, f_double &leftBasis1, f_double &leftBasis2, f_double &leftBasis1_, f_double &leftBasis2_, f_double &rightBasis1, f_double &rightBasis2, f_double &rightBasis1_, f_double &rightBasis2_)
 {
 	// TEMPORARY: How do I get the correct Jacobian here?
@@ -233,13 +234,6 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				f_double basis1_ = currentElement->basisLegendre(b, 1);
 				f_double basis2_ = currentElement->basisLegendre(a, 1);
 
-				// Left boundary
-				double x_left = currentElement->get_nodeCoordinates()[0];
-				double b_left = -a*basis1_(x_left)*basis2(x_left);
-
-				// Right boundary
-				double x_right = currentElement->get_nodeCoordinates()[1];
-
 				double value = stiffnessMatrix(i, j);
 				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1_, basis2_));
 			}
@@ -310,14 +304,19 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				f_double basis1_ = currentElement->basisLegendre(b, 1);
 				f_double basis2_ = currentElement->basisLegendre(a, 1);
 
+				std::cout << i << " " << j << std::endl;
+
 				double value = stiffnessMatrix(i, j); // Bit messy...
-				//stiffnessMatrix.set(i, j, value + this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1)); // Final 4 arguments are not important on exterior boundaries.
+				stiffnessMatrix.set(i, j, value + this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1)); // Final 4 arguments are not important on exterior boundaries.
 				this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1);
 			}
 		}
 	}
 
-
+	stiffnessMatrix.set(0,   0,   1);
+	stiffnessMatrix.set(n-1, n-1, 1);
+	loadVector[0]   = A;
+	loadVector[n-1] = B;
 
 	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
 	{

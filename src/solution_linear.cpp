@@ -185,6 +185,22 @@ void Solution_linear::Solve(const double &a_cgTolerance)
 		stiffnessMatrix.set(j, m, 0);
 	stiffnessMatrix.set(m, m, 1);
 
+
+	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
+	{
+		for (int j=0; j<stiffnessMatrix.get_noRows(); ++j)
+			std::cout << stiffnessMatrix(i, j) << " ";
+		std::cout << std::endl;
+	}
+
+	std::cout << std::endl << std::endl;
+
+	for (int i=0; i<loadVector.size(); ++i)
+		std::cout << loadVector[i] << std::endl;
+
+
+	
+
 	this->solution = linearSystems::conjugateGradient(stiffnessMatrix, loadVector, a_cgTolerance);
 
 	this->solution[0] = A;
