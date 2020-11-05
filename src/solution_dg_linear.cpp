@@ -113,8 +113,6 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 
 	// return integral;
 
-	double a = 1;
-
 	double J = currentElement->get_Jacobian();
 	double integral = 0;
 
@@ -126,7 +124,7 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 	{
 		double b_value = basis1_(coordinates[i]) * basis2_(coordinates[i]);
 
-		integral += a*b_value*weights[i]/J;
+		integral += b_value*weights[i]/J;
 	}
 
 	return integral;
@@ -240,8 +238,128 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		}
 	}
 
+
+	// Flux parameters.
+	double theta = -1;
+	double sigma = 10/(*(this->mesh->elements))[0]->get_Jacobian();
+	
+
+	Matrix_full<double> ppMatrix(2, 2, 0); // Assumes linear everywhere.
+	Matrix_full<double> pmMatrix(2, 2, 0);
+	Matrix_full<double> mpMatrix(2, 2, 0);
+	Matrix_full<double> mmMatrix(2, 2, 0);
+	for (int faceNo = 0; faceNo<this->mesh->get_noNodes(); ++ faceNo)
+	{
+		double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo];
+
+		if (faceNo == 0)
+		{
+			int elementNo = faceNo;
+			Element* currentElement = (*(this->mesh->elements))[elementNo];
+			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			for (int a=0; a<elementDoFs.size(); ++a)
+			{
+				for (int b=0; b<elementDoFs.size(); ++b)
+				{
+					int i = elementDoFs[b];
+					int j = elementDoFs[a];
+
+					double u  = currentElement->basisLegendre(a, 0)(currentFace);
+					double v  = currentElement->basisLegendre(b, 0)(currentFace);
+					double u_ = currentElement->basisLegendre(a, 1)(currentFace);
+					double v_ = currentElement->basisLegendre(b, 1)(currentFace);
+
+					double b_value = -(u_)*(v)/2 + theta*(v_)*(u)/2 + sigma*(u)*(v);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+				}
+			}
+		}
+		else if (faceNo == this->mesh->get_noNodes()-1)
+		{
+			int elementNo = faceNo-1;
+			Element* currentElement = (*(this->mesh->elements))[elementNo];
+			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			for (int a=0; a<elementDoFs.size(); ++a)
+			{
+				for (int b=0; b<elementDoFs.size(); ++b)
+				{
+					int i = elementDoFs[b];
+					int j = elementDoFs[a];
+
+					double u  = currentElement->basisLegendre(a, 0)(currentFace);
+					double v  = currentElement->basisLegendre(b, 0)(currentFace);
+					double u_ = currentElement->basisLegendre(a, 1)(currentFace);
+					double v_ = currentElement->basisLegendre(b, 1)(currentFace);
+
+					double b_value = -(u_)*(-v)/2 + theta*(v_)*(-u)/2 + sigma*(-u)*(-v);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+				}
+			}
+		}
+		else
+		{
+			int prevElementNo = faceNo;
+			int nextElementNo = faceNo+1;
+			Element* prevElement = (*(this->mesh->elements))[prevElementNo];
+			Element* nextElement = (*(this->mesh->elements))[nextElementNo];
+			std::vector<int> prevElementDoFs = elements->get_dg_elementDoFs(prevElementNo);
+			std::vector<int> nextElementDoFs = elements->get_dg_elementDoFs(nextElementNo);
+
+			for (int a=0; a<prevElementDoFs.size(); ++a)
+			{
+				for (int b=0; b<prevElementDoFs.size(); ++b)
+				{
+					for (int c=0; c<prevElementDoFs.size(); ++c)
+					{
+						for (int d=0; d<prevElementDoFs.size(); ++d)
+						{
+							int i = prevElementDoFs[b];
+							int j = prevElementDoFs[a];
+							int k = nextElementDoFs[d];
+							int l = nextElementDoFs[c];
+
+							double um  = prevElement->basisLegendre(a, 0)(currentFace);
+							double vm  = prevElement->basisLegendre(b, 0)(currentFace);
+							double up  = nextElement->basisLegendre(c, 0)(currentFace);
+							double vp  = nextElement->basisLegendre(d, 0)(currentFace);
+							double um_ = prevElement->basisLegendre(a, 1)(currentFace);
+							double vm_ = prevElement->basisLegendre(b, 1)(currentFace);
+							double up_ = nextElement->basisLegendre(c, 1)(currentFace);
+							double vp_ = nextElement->basisLegendre(d, 1)(currentFace);
+
+							/*std::cout
+                                << um  << std::endl
+								<< vm  << std::endl
+								<< up  << std::endl
+								<< vp  << std::endl
+								<< um_ << std::endl
+								<< vm_ << std::endl
+								<< up_ << std::endl
+								<< vp_ << std::endl
+							<< std::endl;*/
+
+							double b_value = -(up_ + um_)*(vm - vp)/2 + theta*(vp_ + vm_)*(um - up)/2 + sigma*(um - up)*(vm - vp);
+
+							double value = stiffnessMatrix(i, j);
+							//stiffnessMatrix.set(i, j, value + b_value);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+
+
 	// Interior face loop.
-	for (int faceNo = 1; faceNo<this->mesh->get_noNodes()-1; ++faceNo) // Only works in 1D
+	/*for (int faceNo = 1; faceNo<this->mesh->get_noNodes()-1; ++faceNo) // Only works in 1D
 	{
 		double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo]; // May need modifying
 
@@ -304,19 +422,20 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				f_double basis1_ = currentElement->basisLegendre(b, 1);
 				f_double basis2_ = currentElement->basisLegendre(a, 1);
 
-				std::cout << i << " " << j << std::endl;
-
 				double value = stiffnessMatrix(i, j); // Bit messy...
 				stiffnessMatrix.set(i, j, value + this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1)); // Final 4 arguments are not important on exterior boundaries.
 				this->b(faceNo, basis1, basis2, basis1_, basis2_, basis1, basis1, basis1, basis1);
 			}
 		}
-	}
+	}*/
 
-	stiffnessMatrix.set(0,   0,   1);
-	stiffnessMatrix.set(n-1, n-1, 1);
-	loadVector[0]   = A;
-	loadVector[n-1] = B;
+	f_double basis = (*(this->mesh->elements))[0]->basisLegendre(0, 1);
+	for (int i=0; i<11; ++i)
+	{
+		double x = -1 + i*double(2)/(11-1);
+		std::cout << std::setw(15) << x << std::setw(15) << basis(x);
+		std::cout << std::endl;
+	}
 
 	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
 	{

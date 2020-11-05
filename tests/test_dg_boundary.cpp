@@ -31,6 +31,12 @@ double test(double x)
 	return x*(x+3)*exp(x);
 }
 
+// Should yield u(x) = sin(pi*x)
+double test1(double x)
+{
+	return pow(M_PI, 2)*sin(M_PI*x);
+}
+
 double exact(double x)
 {
 	double a = 1e-3;
@@ -49,7 +55,7 @@ int main()
 {
 	// Sets up problem.
 	Mesh*     myMesh     = new Mesh(4);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, test);	
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, test1);	
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	mySolution->Solve(1e-10);
