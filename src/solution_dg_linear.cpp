@@ -241,8 +241,9 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 	// Flux parameters.
 	double theta = -1;
-	double h = (*(this->mesh->elements))[0]->get_Jacobian();
-	double sigma = 10/(2*h);
+	double J = (*(this->mesh->elements))[0]->get_Jacobian();
+	double h = 2*J;
+	double sigma = 10/h;
 
 
 
@@ -264,23 +265,24 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				int j = elementDoFs[a];
 
 				// DOES SOMETHING HAVE TO BE ADDED TO THE RHS HERE?
+				// Yes, it's the boundary conditions, which are zero in this test problem.
 
 				for (int b=0; b<elementDoFs.size(); ++b)
 				{
 					int i = elementDoFs[b];
 
-					double u  = currentElement->basisLegendre(b, 0)(currentFace);
-					double v  = currentElement->basisLegendre(a, 0)(currentFace);
-					double u_ = currentElement->basisLegendre(b, 1)(currentFace);
-					double v_ = currentElement->basisLegendre(a, 1)(currentFace);
+					double u  = currentElement->basisLegendre(b, 0)(-1);
+					double v  = currentElement->basisLegendre(a, 0)(-1);
+					double u_ = currentElement->basisLegendre(b, 1)(-1)/J;
+					double v_ = currentElement->basisLegendre(a, 1)(-1)/J;
 
 					double b_value = -(u_)*(-v)/2 + theta*(v_)*(-u)/2 + sigma*(-u)*(-v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "left" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "left" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 			}	
@@ -297,23 +299,24 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				int j = elementDoFs[a];
 
 				// DOES SOMETHING HAVE TO BE ADDED TO THE RHS HERE?
+				// Yes, it's the boundary conditions, which are zero in this test problem.
 
 				for (int b=0; b<elementDoFs.size(); ++b)
 				{
 					int i = elementDoFs[b];
 
-					double u  = currentElement->basisLegendre(b, 0)(currentFace);
-					double v  = currentElement->basisLegendre(a, 0)(currentFace);
-					double u_ = currentElement->basisLegendre(b, 1)(currentFace);
-					double v_ = currentElement->basisLegendre(a, 1)(currentFace);
+					double u  = currentElement->basisLegendre(b, 0)(1);
+					double v  = currentElement->basisLegendre(a, 0)(1);
+					double u_ = currentElement->basisLegendre(b, 1)(1)/J;
+					double v_ = currentElement->basisLegendre(a, 1)(1)/J;
 
 					double b_value = -(u_)*(v)/2 + theta*(v_)*(u)/2 + sigma*(u)*(v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "right" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "right" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 			}	
@@ -337,18 +340,18 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					int i = prevElementDoFs[b];
 
 					// --
-					double um  = prevElement->basisLegendre(b, 0)(currentFace);
-					double vm  = prevElement->basisLegendre(a, 0)(currentFace);
-					double um_ = prevElement->basisLegendre(b, 1)(currentFace);
-					double vm_ = prevElement->basisLegendre(a, 1)(currentFace);
+					double um  = prevElement->basisLegendre(b, 0)(1);
+					double vm  = prevElement->basisLegendre(a, 0)(1);
+					double um_ = prevElement->basisLegendre(b, 1)(1)/J;
+					double vm_ = prevElement->basisLegendre(a, 1)(1)/J;
 
 					double b_value = -(um_)*(vm)/2 + theta*(vm_)*(um)/2 + sigma*(um)*(vm);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "mm" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "mm" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 
@@ -357,18 +360,18 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					int i = nextElementDoFs[b];
 
 					// +-
-					double up  = nextElement->basisLegendre(b, 0)(currentFace);
-					double vm  = prevElement->basisLegendre(a, 0)(currentFace);
-					double up_ = nextElement->basisLegendre(b, 1)(currentFace);
-					double vm_ = prevElement->basisLegendre(a, 1)(currentFace);
+					double up  = nextElement->basisLegendre(b, 0)(-1);
+					double vm  = prevElement->basisLegendre(a, 0)( 1);
+					double up_ = nextElement->basisLegendre(b, 1)(-1)/J;
+					double vm_ = prevElement->basisLegendre(a, 1)( 1)/J;
 
 					double b_value = -(up_)*(vm)/2 + theta*(vm_)*(-up)/2 + sigma*(-up)*(vm);
 
 					double value = stiffnessMatrix(i, j);
-					stiffnessMatrix.set(i, j, value + b_value);
+					//stiffnessMatrix.set(i, j, value + b_value); // <-- Just to temporarily get rid of lower diagonal for reading purposes.
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "pm" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "pm" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 			}
@@ -382,18 +385,18 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					int i = prevElementDoFs[b];
 
 					// -+
-					double um  = prevElement->basisLegendre(b, 0)(currentFace);
-					double vp  = nextElement->basisLegendre(a, 0)(currentFace);
-					double um_ = prevElement->basisLegendre(b, 1)(currentFace);
-					double vp_ = nextElement->basisLegendre(a, 1)(currentFace);
+					double um  = prevElement->basisLegendre(b, 0)( 1);
+					double vp  = nextElement->basisLegendre(a, 0)(-1);
+					double um_ = prevElement->basisLegendre(b, 1)( 1)/J;
+					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J;
 
 					double b_value = -(um_)*(-vp)/2 + theta*(vp_)*(um)/2 + sigma*(um)*(-vp);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "mp" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "mp" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 
@@ -402,18 +405,18 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					int i = nextElementDoFs[b];
 
 					// ++
-					double up  = nextElement->basisLegendre(b, 0)(currentFace);
-					double vp  = nextElement->basisLegendre(a, 0)(currentFace);
-					double up_ = nextElement->basisLegendre(b, 1)(currentFace);
-					double vp_ = nextElement->basisLegendre(a, 1)(currentFace);
+					double up  = nextElement->basisLegendre(b, 0)(-1);
+					double vp  = nextElement->basisLegendre(a, 0)(-1);
+					double up_ = nextElement->basisLegendre(b, 1)(-1)/J;
+					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J;
 
 					double b_value = -(up_)*(-vp)/2 + theta*(vp_)*(-up)/2 + sigma*(-up)*(-vp);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
 
-					/*if ((i == 5) && (j == 7))
-						std::cout << "WOW! " << "pp" << std::endl;*/
+					if ((i == 6) && (j == 7))
+						std::cout << "WOW! " << "pp" << std::endl;
 					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
 				}
 			}
@@ -636,7 +639,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
 	{
 		for (int j=0; j<stiffnessMatrix.get_noRows(); ++j)
-			std::cout << stiffnessMatrix(i, j) << " ";
+			std::cout << std::setw(8) << stiffnessMatrix(i, j);
 		std::cout << std::endl;
 	}
 
