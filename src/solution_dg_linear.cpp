@@ -276,7 +276,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double u_ = currentElement->basisLegendre(b, 1)(-1)/J;
 					double v_ = currentElement->basisLegendre(a, 1)(-1)/J;
 
-					double b_value = -(u_)*(-v)/2 + theta*(v_)*(-u)/2 + sigma*(-u)*(-v);
+					double b_value = -(u_)*(-v) + theta*(v_)*(-u) + sigma*(-u)*(-v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -310,7 +310,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double u_ = currentElement->basisLegendre(b, 1)(1)/J;
 					double v_ = currentElement->basisLegendre(a, 1)(1)/J;
 
-					double b_value = -(u_)*(v)/2 + theta*(v_)*(u)/2 + sigma*(u)*(v);
+					double b_value = -(u_)*(v) + theta*(v_)*(u) + sigma*(u)*(v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -368,7 +368,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double b_value = -(up_)*(vm)/2 + theta*(vm_)*(-up)/2 + sigma*(-up)*(vm);
 
 					double value = stiffnessMatrix(i, j);
-					//stiffnessMatrix.set(i, j, value + b_value); // <-- Just to temporarily get rid of lower diagonal for reading purposes.
+					stiffnessMatrix.set(i, j, value + b_value);
 
 					if ((i == 6) && (j == 7))
 						std::cout << "WOW! " << "pm" << std::endl;
