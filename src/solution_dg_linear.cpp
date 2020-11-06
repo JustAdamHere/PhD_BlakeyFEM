@@ -241,10 +241,212 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 	// Flux parameters.
 	double theta = -1;
-	double sigma = 10/(*(this->mesh->elements))[0]->get_Jacobian();
+	double h = (*(this->mesh->elements))[0]->get_Jacobian();
+	double sigma = 10/(2*h);
+
+
+
+
+
+	for (int faceNo=0; faceNo<this->mesh->get_noNodes(); ++faceNo)
+	{
+		double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo];
+
+		// Left boundary face.
+		if (faceNo == 0)
+		{
+			int elementNo = faceNo;
+			Element* currentElement = (*(this->mesh->elements))[elementNo];
+			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			for (int a=0; a<elementDoFs.size(); ++a)
+			{
+				int j = elementDoFs[a];
+
+				// DOES SOMETHING HAVE TO BE ADDED TO THE RHS HERE?
+
+				for (int b=0; b<elementDoFs.size(); ++b)
+				{
+					int i = elementDoFs[b];
+
+					double u  = currentElement->basisLegendre(b, 0)(currentFace);
+					double v  = currentElement->basisLegendre(a, 0)(currentFace);
+					double u_ = currentElement->basisLegendre(b, 1)(currentFace);
+					double v_ = currentElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(u_)*(-v)/2 + theta*(v_)*(-u)/2 + sigma*(-u)*(-v);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "left" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+			}	
+		}
+		// Right boundary face.
+		else if (faceNo == this->mesh->get_noNodes()-1)
+		{
+			int elementNo = faceNo-1;
+			Element* currentElement = (*(this->mesh->elements))[elementNo];
+			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			for (int a=0; a<elementDoFs.size(); ++a)
+			{
+				int j = elementDoFs[a];
+
+				// DOES SOMETHING HAVE TO BE ADDED TO THE RHS HERE?
+
+				for (int b=0; b<elementDoFs.size(); ++b)
+				{
+					int i = elementDoFs[b];
+
+					double u  = currentElement->basisLegendre(b, 0)(currentFace);
+					double v  = currentElement->basisLegendre(a, 0)(currentFace);
+					double u_ = currentElement->basisLegendre(b, 1)(currentFace);
+					double v_ = currentElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(u_)*(v)/2 + theta*(v_)*(u)/2 + sigma*(u)*(v);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "right" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+			}	
+		}
+		// Interior faces.
+		else
+		{
+			int prevElementNo = faceNo-1;
+			int nextElementNo = faceNo;
+			Element* prevElement = (*(this->mesh->elements))[prevElementNo];
+			Element* nextElement = (*(this->mesh->elements))[nextElementNo];
+			std::vector<int> prevElementDoFs = elements->get_dg_elementDoFs(prevElementNo);
+			std::vector<int> nextElementDoFs = elements->get_dg_elementDoFs(nextElementNo);
+
+			for (int a=0; a<prevElementDoFs.size(); ++a)
+			{
+				int j = prevElementDoFs[a];
+
+				for (int b=0; b<prevElementDoFs.size(); ++b)
+				{
+					int i = prevElementDoFs[b];
+
+					// --
+					double um  = prevElement->basisLegendre(b, 0)(currentFace);
+					double vm  = prevElement->basisLegendre(a, 0)(currentFace);
+					double um_ = prevElement->basisLegendre(b, 1)(currentFace);
+					double vm_ = prevElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(um_)*(vm)/2 + theta*(vm_)*(um)/2 + sigma*(um)*(vm);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "mm" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+
+				for (int b=0; b<nextElementDoFs.size(); ++b)
+				{
+					int i = nextElementDoFs[b];
+
+					// +-
+					double up  = nextElement->basisLegendre(b, 0)(currentFace);
+					double vm  = prevElement->basisLegendre(a, 0)(currentFace);
+					double up_ = nextElement->basisLegendre(b, 1)(currentFace);
+					double vm_ = prevElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(up_)*(vm)/2 + theta*(vm_)*(-up)/2 + sigma*(-up)*(vm);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "pm" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+			}
+
+			for (int a=0; a<nextElementDoFs.size(); ++a)
+			{
+				int j = nextElementDoFs[a];
+
+				for (int b=0; b<prevElementDoFs.size(); ++b)
+				{
+					int i = prevElementDoFs[b];
+
+					// -+
+					double um  = prevElement->basisLegendre(b, 0)(currentFace);
+					double vp  = nextElement->basisLegendre(a, 0)(currentFace);
+					double um_ = prevElement->basisLegendre(b, 1)(currentFace);
+					double vp_ = nextElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(um_)*(-vp)/2 + theta*(vp_)*(um)/2 + sigma*(um)*(-vp);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "mp" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+
+				for (int b=0; b<nextElementDoFs.size(); ++b)
+				{
+					int i = nextElementDoFs[b];
+
+					// ++
+					double up  = nextElement->basisLegendre(b, 0)(currentFace);
+					double vp  = nextElement->basisLegendre(a, 0)(currentFace);
+					double up_ = nextElement->basisLegendre(b, 1)(currentFace);
+					double vp_ = nextElement->basisLegendre(a, 1)(currentFace);
+
+					double b_value = -(up_)*(-vp)/2 + theta*(vp_)*(-up)/2 + sigma*(-up)*(-vp);
+
+					double value = stiffnessMatrix(i, j);
+					stiffnessMatrix.set(i, j, value + b_value);
+
+					/*if ((i == 5) && (j == 7))
+						std::cout << "WOW! " << "pp" << std::endl;*/
+					/*std::cout << i << " " << j << " " << b_value << std::endl;*/
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 
-	Matrix_full<double> ppMatrix(2, 2, 0); // Assumes linear everywhere.
+	/*Matrix_full<double> ppMatrix(2, 2, 0); // Assumes linear everywhere.
 	Matrix_full<double> pmMatrix(2, 2, 0);
 	Matrix_full<double> mpMatrix(2, 2, 0);
 	Matrix_full<double> mmMatrix(2, 2, 0);
@@ -333,7 +535,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 							double up_ = nextElement->basisLegendre(c, 1)(currentFace);
 							double vp_ = nextElement->basisLegendre(d, 1)(currentFace);
 
-							/*std::cout
+							std::cout
                                 << um  << std::endl
 								<< vm  << std::endl
 								<< up  << std::endl
@@ -342,18 +544,20 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 								<< vm_ << std::endl
 								<< up_ << std::endl
 								<< vp_ << std::endl
-							<< std::endl;*/
+							<< std::endl;
 
 							double b_value = -(up_ + um_)*(vm - vp)/2 + theta*(vp_ + vm_)*(um - up)/2 + sigma*(um - up)*(vm - vp);
 
+							std::cout << b_value << std::endl;
+
 							double value = stiffnessMatrix(i, j);
-							//stiffnessMatrix.set(i, j, value + b_value);
+							stiffnessMatrix.set(i, j, value + b_value);
 						}
 					}
 				}
 			}
 		}
-	}
+	}*/
 
 
 
@@ -429,14 +633,6 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		}
 	}*/
 
-	f_double basis = (*(this->mesh->elements))[0]->basisLegendre(0, 1);
-	for (int i=0; i<11; ++i)
-	{
-		double x = -1 + i*double(2)/(11-1);
-		std::cout << std::setw(15) << x << std::setw(15) << basis(x);
-		std::cout << std::endl;
-	}
-
 	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
 	{
 		for (int j=0; j<stiffnessMatrix.get_noRows(); ++j)
@@ -451,8 +647,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 
 
-	this->solution = linearSystems::conjugateGradient(stiffnessMatrix, loadVector, 1e-5);
-	//this->solution = linearSystems::GaussJordan(stiffnessMatrix, loadVector);
+	//this->solution = linearSystems::conjugateGradient(stiffnessMatrix, loadVector, 1e-5);
+	this->solution = linearSystems::GaussJordan(stiffnessMatrix, loadVector);
 	//this->solution.resize(n, 0);
 
 
