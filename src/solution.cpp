@@ -208,6 +208,18 @@ void Solution::output_solution(f_double const a_u, const std::string a_filename)
 	}
 
 	Element* lastElement = (*(this->mesh->elements))[n-1];
+	double x  = lastElement->get_nodeCoordinates()[1];
+	double xi = 1;
+	outputFile
+		<< std::setw(26) << std::setprecision(16) << std::scientific << x
+		<< std::setw(26) << std::setprecision(16) << std::scientific << this->compute_uh(n-1, xi, 0);
+		if (a_u != 0)
+			outputFile << std::setw(26) << std::setprecision(16) << std::scientific << a_u(x);
+		else
+			outputFile << std::setw(26) << std::setprecision(16) << "Inf";
+	outputFile << std::endl;
+
+	/*Element* lastElement = (*(this->mesh->elements))[n-1];
 	outputFile
 		<< std::setw(26) << std::setprecision(16) << std::scientific << lastElement->get_nodeCoordinates()[1]
 		<< std::setw(26) << std::setprecision(16) << std::scientific << this->solution[n];
@@ -215,7 +227,7 @@ void Solution::output_solution(f_double const a_u, const std::string a_filename)
 			outputFile << std::setw(26) << std::setprecision(16) << std::scientific << a_u(lastElement->get_nodeCoordinates()[1]);
 		else
 			outputFile << std::setw(26) << std::setprecision(16) << "Inf";
-	outputFile << std::endl;
+	outputFile << std::endl;*/
 
 	outputFile.close();
 }

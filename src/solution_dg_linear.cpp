@@ -830,3 +830,21 @@ double Solution_dg_linear::jump(f_double &basis1, f_double &basis2, const double
 {
 	return basis2(a_face) - basis1(a_face);
 }
+
+double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const int &a_n) const
+{
+	Element* currentElement = (*(this->mesh->elements))[a_i];
+	double J = currentElement->get_Jacobian(); // Needs to be inverse transpose of Jacobi in dimensions higher than 1.
+
+	double result = 0;
+
+	std::vector<int> elementDoFs = this->mesh->elements->get_dg_elementDoFs(a_i);
+	for (int j=0; j<elementDoFs.size(); ++j)
+	{
+		f_double basis = (*(this->mesh->elements))[a_i]->basisLegendre(j, a_n);
+
+		result += this->solution[elementDoFs[j]] * basis(a_xi);
+	}
+
+	return result / pow(J, a_n);
+}

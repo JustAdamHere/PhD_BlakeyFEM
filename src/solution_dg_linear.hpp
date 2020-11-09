@@ -30,6 +30,7 @@ class Solution_dg_linear : public Solution
 
 		// Computers.
 		double compute_residual(const double &a_uh, const double &a_uh_2, const double &a_x) const;
+		double compute_uh(const int &a_i, const double &a_xi, const int &a_n) const override;
 
 	public:
 		// Constructors.

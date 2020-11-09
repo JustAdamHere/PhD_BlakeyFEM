@@ -15,47 +15,22 @@
 
 #include <functional>
 
-double zero(double x)
-{
-	return 0;
-}
-
-double one(double x)
-{
-	return 1;
-}
-
-// Should yield u(x) = x(1-x)e^x
-double test(double x)
-{
-	return x*(x+3)*exp(x);
-}
-
 // Should yield u(x) = sin(pi*x)
-double test1(double x)
+double f(double x)
 {
 	return pow(M_PI, 2)*sin(M_PI*x);
 }
 
 double exact(double x)
 {
-	double a = 1e-3;
-
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1) - (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1) + 1;
-}
-
-double exact_(double x)
-{
-	double a = 1e-3;
-
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a) + (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a);
+	return sin(M_PI*x);
 }
 
 int main()
 {
 	// Sets up problem.
-	Mesh*     myMesh     = new Mesh(4);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, test1);	
+	Mesh*     myMesh     = new Mesh(8);
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f);	
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	mySolution->Solve(1e-10);
