@@ -21,7 +21,7 @@ namespace common
 	double   l2Norm(const std::vector<double> &a_v1, const std::vector<double> &a_v2);
 	double   L2Norm(const f_double &a_f);
 	double   L2NormDifference(const f_double &a_f, const f_double &a_g);
-	f_double multiplyFunction(const f_double &a_f, const f_double &a_g);	
+	f_double multiplyFunction(const f_double &a_f, const f_double &a_g);
 	f_double transformFunction(const f_double &a_f, const double &a_xj, const double &a_xjp1);
 	void     tridiagonalVectorMultiplication(const std::vector<double> &a_a, const std::vector<double> &a_b, const std::vector<double> &a_c, const std::vector<double> &a_x, std::vector<double> &a_solution);
 }

@@ -303,9 +303,39 @@ double Solution_dg_linear::compute_residual(const double &a_uh, const double &a_
 	return 0;
 }
 
+// Not entirely sure that this is correct...
 double Solution_dg_linear::compute_energyNormDifference2(f_double const &a_u, f_double const &a_u_1) const
 {
-	return 0;
+	int n = this->mesh->get_noElements();
+
+	double norm = 0;
+
+	for (int i=0; i<n; ++i)
+	{
+		// Gets the current element.
+		Element* currentElement = (*(this->mesh->elements))[i];
+
+		// Retrieves quadrature information.
+		std::vector<double> coordinates;
+		std::vector<double> weights;
+		currentElement->get_elementQuadrature(coordinates, weights);
+
+		for (int j=0; j<coordinates.size(); ++j)
+		{			
+			// Actual and approximate solution at coordinates.
+			double uh   = compute_uh(i, coordinates[j], 0);
+			double uh_1 = compute_uh(i, coordinates[j], 1);
+			double u    = a_u  (currentElement->mapLocalToGlobal(coordinates[j]));
+			double u_1  = a_u_1(currentElement->mapLocalToGlobal(coordinates[j]));
+
+			double Jacobian = currentElement->get_Jacobian();
+
+			norm += pow((u_1 - uh_1), 2)*weights[j]*Jacobian
+				 +  pow(sqrt(this->f(currentElement->mapLocalToGlobal(coordinates[j])))*(u - uh), 2)*weights[j]*Jacobian;
+		}
+	}
+
+	return norm;
 }
 
 double Solution_dg_linear::compute_errorIndicator(const double &a_i) const

@@ -8,6 +8,7 @@
 #include "mesh.hpp"
 #include "solution.hpp"
 #include "solution_linear.hpp"
+#include "solution_dg_linear.hpp"
 #include "solution_nonlinear.hpp"
 #include <algorithm>
 #include <iterator>
@@ -16,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <cassert>
+#include <typeinfo>
 
 namespace refinement
 {
@@ -100,10 +102,26 @@ namespace refinement
 
 		// Creates new mesh and solution.
 		*a_meshNew = new Mesh(elements);
-		if (a_solution->get_linear())
+		/*if (a_solution->get_linear())
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);*/
+
+		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+			*a_solutionNew = new Solution_linear(
+				*a_meshNew,
+				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+			*a_solutionNew = new Solution_nonlinear(
+				*a_meshNew,
+				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
 			);
 
 	}
@@ -180,10 +198,26 @@ namespace refinement
 
 		// Creates new mesh and solution.
 		*a_meshNew = new Mesh(elements);
-		if (a_solution->get_linear())
+		/*if (a_solution->get_linear())
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);*/
+
+		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+			*a_solutionNew = new Solution_linear(
+				*a_meshNew,
+				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+			*a_solutionNew = new Solution_nonlinear(
+				*a_meshNew,
+				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
 			);
 	}
 
@@ -231,10 +265,26 @@ namespace refinement
 
 		// Creates new mesh and solution.
 		*a_meshNew = new Mesh(elements);
-		if (a_solution->get_linear())
+		/*if (a_solution->get_linear())
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);*/
+
+		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+			*a_solutionNew = new Solution_linear(
+				*a_meshNew,
+				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+			);
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+			*a_solutionNew = new Solution_nonlinear(
+				*a_meshNew,
+				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
 			);
 	}
 
@@ -274,7 +324,7 @@ namespace refinement
 
 			// Calculates new error indicator.
 			double errorIndicator = currentSolution->compute_globalErrorIndicator();
-			if (errorIndicator <= a_adaptivityTolerance)
+			if (errorIndicator < a_adaptivityTolerance)
 				break;
 
 			// Error indicators calculation.
@@ -352,11 +402,19 @@ namespace refinement
 		// Starting conditions.
 		Mesh*     newMesh     = new Mesh(*a_mesh);
 		Solution* newSolution;
-		if (a_solution->get_linear())
+		/*if (a_solution->get_linear())
+			newSolution = new Solution_linear(*const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution)));*/
+
+		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
 			newSolution = new Solution_linear(*const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution)));
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+			newSolution = new Solution_dg_linear(*const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution)));
+		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+			newSolution = new Solution_nonlinear(*const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution)));
 
 		// Loop variables initialisation.
 		double errorIndicator, errorIndicatorPrev = 0;
+		double energyNorm, energyNormPrev = 0;
 		int iteration;
 		Mesh*     currentMesh;
 		Solution* currentSolution;
@@ -381,17 +439,20 @@ namespace refinement
 
 			// Calculates new error indicator.
 			double errorIndicator = currentSolution->compute_globalErrorIndicator();
-			if (errorIndicator <= a_adaptivityTolerance)
+			if (errorIndicator < a_adaptivityTolerance)
 				break;
 
 			// Outputs details if asked.
 			if (a_output)
 			{
+				energyNorm = sqrt(currentSolution->compute_energyNormDifference2(exact, exact_));
+
 				std::cout << "#Iterations     : " << iteration << std::endl;
 				std::cout << "#Elements       : " << currentMesh->get_noElements() << std::endl;
 				std::cout << "DoF             : " << currentMesh->elements->get_DoF() << std::endl;
 				if (exact != 0 && exact_ != 0)
-					std::cout << "Energy          : " << sqrt(currentSolution->compute_energyNormDifference2(exact, exact_)) << std::endl;
+					std::cout << "Energy          : " << energyNorm << std::endl;
+				std::cout << "Energy ratio    : " << energyNormPrev/energyNorm << std::endl;
 				std::cout << "Error indicator : " << errorIndicator << std::endl;
 				std::cout << "Indicator ratio : " << errorIndicatorPrev/errorIndicator << std::endl;
 				std::cout << std::endl;
@@ -422,6 +483,7 @@ namespace refinement
 			currentMesh = newMesh;
 			currentSolution = newSolution;
 			errorIndicatorPrev = errorIndicator;
+			energyNormPrev = energyNorm;
 		}
 
 		// Closes convergence file.

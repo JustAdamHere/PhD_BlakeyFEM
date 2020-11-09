@@ -186,7 +186,7 @@ void Solution_linear::Solve(const double &a_cgTolerance)
 	stiffnessMatrix.set(m, m, 1);
 
 
-	for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
+	/*for (int i=0; i<stiffnessMatrix.get_noColumns(); ++i)
 	{
 		for (int j=0; j<stiffnessMatrix.get_noRows(); ++j)
 			std::cout << stiffnessMatrix(i, j) << " ";
@@ -196,7 +196,7 @@ void Solution_linear::Solve(const double &a_cgTolerance)
 	std::cout << std::endl << std::endl;
 
 	for (int i=0; i<loadVector.size(); ++i)
-		std::cout << loadVector[i] << std::endl;
+		std::cout << loadVector[i] << std::endl;*/
 
 
 	

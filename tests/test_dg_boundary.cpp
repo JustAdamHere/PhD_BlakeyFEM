@@ -26,17 +26,32 @@ double exact(double x)
 	return sin(M_PI*x);
 }
 
+double exact_(double x)
+{
+	return M_PI*cos(M_PI*x);
+}
+
 int main()
 {
 	// Sets up problem.
-	Mesh*     myMesh     = new Mesh(8);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f);	
+	Mesh*               myMesh     = new Mesh(8);
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f);
+
+	// Refinement variables.
+	Mesh*               myNewMesh;
+	Solution_dg_linear* myNewSolution_type;
+	Solution*           myNewSolution = myNewSolution_type;
+
+	refinement::refinement_g(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 0, 4, true, false, true, exact, exact_);
 
 	// Solves the new problem, and then outputs solution and mesh to files.
-	mySolution->Solve(1e-10);
-	mySolution->output_solution(exact);
+	myNewSolution->output_solution(exact);
+	myNewSolution->Solve(1e-15);
+	myNewSolution->output_mesh();
 
+	//delete myNewSolution; // DEFFO a memory leak somewhere.
 	delete mySolution;
+	//delete myNewMesh;
 	delete myMesh;
 
 	return 0;
