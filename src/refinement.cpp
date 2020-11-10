@@ -415,6 +415,8 @@ namespace refinement
 		// Loop variables initialisation.
 		double errorIndicator, errorIndicatorPrev = 0;
 		double energyNorm, energyNormPrev = 0;
+		double L2Norm, L2NormPrev = 0;
+		double H1Norm, H1NormPrev = 0;
 		int iteration;
 		Mesh*     currentMesh;
 		Solution* currentSolution;
@@ -446,13 +448,21 @@ namespace refinement
 			if (a_output)
 			{
 				energyNorm = sqrt(currentSolution->compute_energyNormDifference2(exact, exact_));
+				L2Norm     = sqrt(currentSolution->compute_L2NormDifference2(exact));
+				H1Norm     = sqrt(currentSolution->compute_H1NormDifference2(exact, exact_));
 
 				std::cout << "#Iterations     : " << iteration << std::endl;
 				std::cout << "#Elements       : " << currentMesh->get_noElements() << std::endl;
 				std::cout << "DoF             : " << currentMesh->elements->get_DoF() << std::endl;
 				if (exact != 0 && exact_ != 0)
+				{
 					std::cout << "Energy          : " << energyNorm << std::endl;
-				std::cout << "Energy ratio    : " << energyNormPrev/energyNorm << std::endl;
+					std::cout << "Energy ratio    : " << energyNormPrev/energyNorm << std::endl;
+					std::cout << "L2              : " << L2Norm << std::endl;
+					std::cout << "L2 ratio        : " << L2NormPrev/L2Norm << std::endl;
+					std::cout << "H1              : " << H1Norm << std::endl;
+					std::cout << "H1 ratio        : " << H1NormPrev/H1Norm << std::endl;
+				}
 				std::cout << "Error indicator : " << errorIndicator << std::endl;
 				std::cout << "Indicator ratio : " << errorIndicatorPrev/errorIndicator << std::endl;
 				std::cout << std::endl;
@@ -484,6 +494,8 @@ namespace refinement
 			currentSolution = newSolution;
 			errorIndicatorPrev = errorIndicator;
 			energyNormPrev = energyNorm;
+			L2NormPrev = L2Norm;
+			H1NormPrev = H1Norm;	
 		}
 
 		// Closes convergence file.

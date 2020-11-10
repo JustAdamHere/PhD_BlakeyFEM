@@ -34,7 +34,7 @@ double exact_(double x)
 int main()
 {
 	// Sets up problem.
-	Mesh*               myMesh     = new Mesh(8);
+	Mesh*               myMesh     = new Mesh(4);
 	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f);
 
 	// Refinement variables.
@@ -42,7 +42,7 @@ int main()
 	Solution_dg_linear* myNewSolution_type;
 	Solution*           myNewSolution = myNewSolution_type;
 
-	refinement::refinement_g(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 0, 4, true, false, true, exact, exact_);
+	refinement::refinement_g(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 0, 5, true, false, true, exact, exact_);
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	myNewSolution->output_solution(exact);
