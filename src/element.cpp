@@ -353,7 +353,7 @@ Elements::Elements(const int &a_noElements)
 			nodeIndices[0] = i;
 			nodeIndices[1] = i+1;
 
-			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
+			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
 		}
 	}	
 	else
@@ -378,14 +378,14 @@ Elements::Elements(const int &a_noElements)
 			nodeIndices[0] = i;
 			nodeIndices[1] = i+1;
 
-			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
+			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
 		}
 		for (int i=0; i<n2; ++i)
 		{
 			nodeIndices[0] = n1 + i;
 			nodeIndices[1] = n1 + i + 1;
 
-			this->elements[n1 + i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
+			this->elements[n1 + i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
 		}
 	}
 
