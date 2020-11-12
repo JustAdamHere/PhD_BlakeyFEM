@@ -353,7 +353,7 @@ Elements::Elements(const int &a_noElements)
 			nodeIndices[0] = i;
 			nodeIndices[1] = i+1;
 
-			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
+			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
 		}
 	}	
 	else
@@ -378,14 +378,14 @@ Elements::Elements(const int &a_noElements)
 			nodeIndices[0] = i;
 			nodeIndices[1] = i+1;
 
-			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
+			this->elements[i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
 		}
 		for (int i=0; i<n2; ++i)
 		{
 			nodeIndices[0] = n1 + i;
 			nodeIndices[1] = n1 + i + 1;
 
-			this->elements[n1 + i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 1);
+			this->elements[n1 + i] = new Element(i, 2, nodeIndices, &nodeCoordinates, 2);
 		}
 	}
 
@@ -529,19 +529,13 @@ std::vector<int> Elements::get_elementDoFs(const int &a_i) const
 
 std::vector<int> Elements::get_dg_elementDoFs(const int &a_i) const
 {
-	std::vector<int> DoFs(2);
+	// ASSUMES UNIFORM P!!!
+	int p = elements[0]->get_polynomialDegree();
 
-	DoFs[0] = 2*a_i;
-	DoFs[1] = 2*a_i + 1;
+	std::vector<int> DoFs(p+1);
 
-	int continuous_start = this->startDoFs[a_i];
-	int continuous_end = this->startDoFs[a_i+1];
-
-	int discontinuous_start = continuous_start - (this->noElements - 1);
-	int discontinuous_end = continuous_end - (this->noElements - 1);
-
-	for (int i=discontinuous_start; i<discontinuous_end; ++i)
-		DoFs.push_back(i);
+	for (int i=0; i<p+1; ++i)
+		DoFs[i] = (p+1)*a_i + i;
 
 	return DoFs;
 }
