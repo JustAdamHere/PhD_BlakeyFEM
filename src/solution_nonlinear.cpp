@@ -746,3 +746,8 @@ double Solution_nonlinear::modified_f(const double &a_u0, const double &a_u1, co
 {
 	return a_damping*f(a_x, a_u0) + f_(a_x, a_u0)*(a_u1 - a_u0);
 }
+
+std::string Solution_nonlinear::get_typeName() const
+{
+	return "Solution_nonlinear";
+}

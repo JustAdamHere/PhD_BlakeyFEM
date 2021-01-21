@@ -42,6 +42,7 @@ class Solution_linear : public Solution
 		f_double get_f() const;
 		double get_epsilon() const;
 		f_double get_c() const;
+		std::string get_typeName() const;
 };
 
 #endif

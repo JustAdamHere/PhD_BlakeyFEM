@@ -300,7 +300,7 @@ f_double Solution_dg_linear::get_f() const
 
 double Solution_dg_linear::compute_residual(const double &a_uh, const double &a_uh_2, const double &a_x) const
 {
-	return 0;
+	return this->f(a_x) + a_uh_2;
 }
 
 // Not entirely sure that this is correct...
@@ -340,7 +340,57 @@ double Solution_dg_linear::compute_energyNormDifference2(f_double const &a_u, f_
 
 double Solution_dg_linear::compute_errorIndicator(const double &a_i) const
 {
-	return 0;
+	// Gets element and its properties.
+	Element* currentElement = (*(this->mesh->elements))[a_i];
+	int P = currentElement->get_polynomialDegree();
+	double leftNode  = currentElement->get_nodeCoordinates()[0];
+	double rightNode = currentElement->get_nodeCoordinates()[1];
+	double Jacobian  = currentElement->get_Jacobian();
+
+	// Calculates L2 norm on element on residual, and jump residual.
+	double norm_2_element = 0;
+	double norm_2_face    = 0;
+	std::vector<double> quadratureCoordinates;
+	std::vector<double> quadratureWeights;
+	currentElement->get_elementQuadrature(quadratureCoordinates, quadratureWeights);
+
+	// Adds element contribution.
+	for (int j=0; j<quadratureCoordinates.size(); ++j)
+	{
+		double uh       = compute_uh(a_i, quadratureCoordinates[j], 0);
+		double uh_2     = compute_uh(a_i, quadratureCoordinates[j], 0);
+		double residual = compute_residual(uh, uh_2, currentElement->mapLocalToGlobal(quadratureCoordinates[j]));
+
+		double x      = currentElement->mapLocalToGlobal(quadratureCoordinates[j]);
+		double weight = (rightNode - x)*(x - leftNode);
+
+		norm_2_element += pow(sqrt(weight)*residual, 2)*quadratureWeights[j]*Jacobian;
+	}
+
+	// Adds left face contribution.
+	if (a_i != this->mesh->get_noElements()-1)
+	{
+		Element* nextElement = (*(this->mesh->elements))[a_i+1];
+
+		double curr_uh_1 = compute_uh(a_i,    1, 1);
+		double next_uh_1 = compute_uh(a_i+1, -1, 1);
+
+		norm_2_face += pow(curr_uh_1/2 - next_uh_1/2, 2);
+	}
+
+	// Adds right face contribution.
+	if (a_i != 0)
+	{
+		Element* prevElement = (*(this->mesh->elements))[a_i-1];
+
+		double prev_uh_1 = compute_uh(a_i-1,  1, 1);
+		double curr_uh_1 = compute_uh(a_i,   -1, 1);
+
+		//norm_2_face += pow(sqrt((prev_uh_1)/2 - (curr_uh_1)/2), 2)*Jacobian;
+		norm_2_face += pow(prev_uh_1 - curr_uh_1, 2);
+	}
+
+	return 10*(pow(Jacobian, 2)*norm_2_element + Jacobian*norm_2_face);
 }
 
 double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const int &a_n) const
@@ -359,4 +409,9 @@ double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const 
 	}
 
 	return result / pow(J, a_n);
+}
+
+std::string Solution_dg_linear::get_typeName() const
+{
+	return "Solution_dg_linear";
 }

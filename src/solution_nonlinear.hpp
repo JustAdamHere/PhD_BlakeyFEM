@@ -55,6 +55,7 @@ class Solution_nonlinear : public Solution
 		f_double2 get_f() const;
 		f_double2 get_f_() const;
 		double get_epsilon() const;
+		std::string get_typeName() const;
 };
 
 #endif

@@ -290,6 +290,16 @@ namespace refinement
 
 	void refinement(const Mesh* a_mesh, Mesh** a_meshNew, const Solution* a_solution, Solution** a_solutionNew, const double &a_solveTolerance, const double &a_adaptivityTolerance, const int &a_maxIterations, const bool &a_refineh, const bool &a_refinep, const bool &a_output, f_double const exact, f_double const exact_)
 	{
+		std::cout << "HEY!" << std::endl;
+		//std::cout << (typeid(a_solution).hash_code() == typeid(a_solution).hash_code()) << std::endl;
+		//std::cout << (typeid(a_solutionNew).hash_code()) << std::endl;
+		std::cout << (typeid(Solution).name()) << std::endl;
+		std::cout << (typeid(Solution_linear).name()) << std::endl;
+		std::cout << (typeid(Solution_nonlinear).name()) << std::endl;
+		std::cout << (typeid(Solution_dg_linear).name()) << std::endl;
+		std::cout << (typeid(a_solution).name()) << std::endl;
+		std::cout << (typeid(a_solutionNew).name()) << std::endl;
+		std::cout << a_solution->get_typeName() << std::endl;
 		// Starting conditions.
 		Mesh*     newMesh     = new Mesh(*a_mesh);
 		Solution* newSolution;

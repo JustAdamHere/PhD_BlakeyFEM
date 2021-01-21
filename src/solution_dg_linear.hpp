@@ -41,6 +41,7 @@ class Solution_dg_linear : public Solution
 
 		// Getters.
 		f_double get_f() const;
+		std::string get_typeName() const;
 };
 
 #endif

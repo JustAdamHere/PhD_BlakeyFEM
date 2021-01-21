@@ -292,3 +292,8 @@ double Solution_linear::compute_errorIndicator(const double &a_i) const
 	
 	return double(1)/(P*(P+1)*this->epsilon) * norm_2;
 }
+
+std::string Solution_linear::get_typeName() const
+{
+	return "Solution_linear";
+}

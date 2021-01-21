@@ -52,6 +52,7 @@ class Solution
 
 		// Getters.
 		bool get_linear() const;
+		virtual std::string get_typeName() const = 0;
 
 		// Outputters.
 		virtual void output_solution(f_double const a_u = 0, const std::string a_filename = "./data/solution.dat") const;
