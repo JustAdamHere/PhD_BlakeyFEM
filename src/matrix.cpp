@@ -10,6 +10,7 @@
 #include "matrix.hpp"
 #include <cassert>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 
 /******************************************************************************
@@ -243,6 +244,21 @@ void Matrix<T>::swapRows(const int &a_row1, const int &a_row2)
 		set(i, a_row1, row2[i]);
 		set(i, a_row2, row1[i]);
 	}
+}
+
+template<class T>
+std::ostream& operator<<(std::ostream& os, const Matrix<T> &a_matrix)
+{
+	for (int i=0; i<a_matrix.get_noRows(); ++i)
+	{
+		for (int j=0; j<a_matrix.get_noColumns(); ++j)
+		{
+			os << std::setw(8) << a_matrix(i, j) << " ";
+		}
+		os << "//" << std::endl;
+	}
+
+	return os;
 }
 
 #endif

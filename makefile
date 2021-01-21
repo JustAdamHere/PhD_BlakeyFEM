@@ -3,6 +3,7 @@
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 TEST_DIRS ?= ./tests
+#TEST_FILE ?= quadrature_test_20210106
 TEST_FILE ?= dg_hg_boundary
 #TEST_FILE ?= hg_boundary
 
