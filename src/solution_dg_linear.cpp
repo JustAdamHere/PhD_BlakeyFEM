@@ -135,9 +135,6 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 	// Flux parameters.
 	double theta = -1;
-	double J = (*(this->mesh->elements))[0]->get_Jacobian();
-	double h = 2*J;
-	double sigma = 10/h;
 
 	// Loop over faces.
 	for (int faceNo=0; faceNo<this->mesh->get_noNodes(); ++faceNo)
@@ -150,6 +147,10 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			int elementNo = faceNo;
 			Element* currentElement = (*(this->mesh->elements))[elementNo];
 			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			double J = currentElement->get_Jacobian();
+			double h = 2*J;
+			double sigma = 10/h;
 
 			for (int a=0; a<elementDoFs.size(); ++a)
 			{
@@ -180,6 +181,10 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			int elementNo = faceNo-1;
 			Element* currentElement = (*(this->mesh->elements))[elementNo];
 			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
+
+			double J = currentElement->get_Jacobian();
+			double h = 2*J;
+			double sigma = 10/h;
 
 			for (int a=0; a<elementDoFs.size(); ++a)
 			{
@@ -214,6 +219,11 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			std::vector<int> prevElementDoFs = elements->get_dg_elementDoFs(prevElementNo);
 			std::vector<int> nextElementDoFs = elements->get_dg_elementDoFs(nextElementNo);
 
+			double J1 = (*(this->mesh->elements))[prevElementNo]->get_Jacobian();
+			double J2 = (*(this->mesh->elements))[nextElementNo]->get_Jacobian();
+			double h = 2*(J1+J2)/2;
+			double sigma = 10/h;
+
 			for (int a=0; a<prevElementDoFs.size(); ++a)
 			{
 				int j = prevElementDoFs[a];
@@ -225,8 +235,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					// --
 					double um  = prevElement->basisLegendre(b, 0)(1);
 					double vm  = prevElement->basisLegendre(a, 0)(1);
-					double um_ = prevElement->basisLegendre(b, 1)(1)/J;
-					double vm_ = prevElement->basisLegendre(a, 1)(1)/J;
+					double um_ = prevElement->basisLegendre(b, 1)(1)/J1;
+					double vm_ = prevElement->basisLegendre(a, 1)(1)/J1;
 
 					double b_value = -(um_)*(vm)/2 + theta*(vm_)*(um)/2 + sigma*(um)*(vm);
 
@@ -241,8 +251,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					// +-
 					double up  = nextElement->basisLegendre(b, 0)(-1);
 					double vm  = prevElement->basisLegendre(a, 0)( 1);
-					double up_ = nextElement->basisLegendre(b, 1)(-1)/J;
-					double vm_ = prevElement->basisLegendre(a, 1)( 1)/J;
+					double up_ = nextElement->basisLegendre(b, 1)(-1)/J2;
+					double vm_ = prevElement->basisLegendre(a, 1)( 1)/J1;
 
 					double b_value = -(up_)*(vm)/2 + theta*(vm_)*(-up)/2 + sigma*(-up)*(vm);
 
@@ -262,8 +272,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					// -+
 					double um  = prevElement->basisLegendre(b, 0)( 1);
 					double vp  = nextElement->basisLegendre(a, 0)(-1);
-					double um_ = prevElement->basisLegendre(b, 1)( 1)/J;
-					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J;
+					double um_ = prevElement->basisLegendre(b, 1)( 1)/J1;
+					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J2;
 
 					double b_value = -(um_)*(-vp)/2 + theta*(vp_)*(um)/2 + sigma*(um)*(-vp);
 
@@ -278,8 +288,8 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					// ++
 					double up  = nextElement->basisLegendre(b, 0)(-1);
 					double vp  = nextElement->basisLegendre(a, 0)(-1);
-					double up_ = nextElement->basisLegendre(b, 1)(-1)/J;
-					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J;
+					double up_ = nextElement->basisLegendre(b, 1)(-1)/J2;
+					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J2;
 
 					double b_value = -(up_)*(-vp)/2 + theta*(vp_)*(-up)/2 + sigma*(-up)*(-vp);
 
@@ -371,23 +381,26 @@ double Solution_dg_linear::compute_errorIndicator(const double &a_i) const
 	if (a_i != this->mesh->get_noElements()-1)
 	{
 		Element* nextElement = (*(this->mesh->elements))[a_i+1];
+		double nextJacobian = nextElement->get_Jacobian();
 
 		double curr_uh_1 = compute_uh(a_i,    1, 1);
 		double next_uh_1 = compute_uh(a_i+1, -1, 1);
 
-		norm_2_face += pow(curr_uh_1/2 - next_uh_1/2, 2);
+		norm_2_face += pow(sqrt((curr_uh_1)/2 - (next_uh_1)/2), 2)*Jacobian;
+		//norm_2_face += pow(curr_uh_1/2 - next_uh_1/2, 2);
 	}
 
 	// Adds right face contribution.
 	if (a_i != 0)
 	{
 		Element* prevElement = (*(this->mesh->elements))[a_i-1];
+		double prevJacobian = prevElement->get_Jacobian();
 
 		double prev_uh_1 = compute_uh(a_i-1,  1, 1);
 		double curr_uh_1 = compute_uh(a_i,   -1, 1);
 
-		//norm_2_face += pow(sqrt((prev_uh_1)/2 - (curr_uh_1)/2), 2)*Jacobian;
-		norm_2_face += pow(prev_uh_1 - curr_uh_1, 2);
+		norm_2_face += pow(sqrt((prev_uh_1)/2 - (curr_uh_1)/2), 2)*Jacobian;
+		//norm_2_face += pow(prev_uh_1 - curr_uh_1, 2);
 	}
 
 	return 10*(pow(Jacobian, 2)*norm_2_element + Jacobian*norm_2_face);

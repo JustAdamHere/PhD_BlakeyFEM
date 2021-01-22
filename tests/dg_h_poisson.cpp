@@ -42,7 +42,7 @@ int main()
 	Solution_dg_linear* myNewSolution_type;
 	Solution*           myNewSolution = myNewSolution_type;
 
-	refinement::refinement(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 1e-3, 2, true, false, true, exact, exact_);
+	refinement::refinement(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 1e-3, 5, true, false, true, exact, exact_);
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	myNewSolution->output_solution(exact);
