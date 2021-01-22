@@ -31,11 +31,16 @@ double exact_(double x)
 	return M_PI*cos(M_PI*x);
 }
 
+double zero(double x)
+{
+	return 0;
+}
+
 int main()
 {
 	// Sets up problem.
 	Mesh*               myMesh     = new Mesh(4);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f);
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f, 1, zero);
 
 	// Refinement variables.
 	Mesh*               myNewMesh;

@@ -1,3 +1,4 @@
+
 /******************************************************************************
  * @details This is a file containing declarations of the [Solution] namespace.
  * 
@@ -18,9 +19,11 @@ class Solution_dg_linear : public Solution
 	private:
 		// Problem data.
 		f_double f;
+		double epsilon;
+		f_double c;
 
 		// Computes stiffness, load vector, and extra stiffness boundary terms.
-		double a(Element* currentElement, f_double &basis1_, f_double &basis2_);
+		double a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_);
 		double l(Element* currentElement, f_double &basis);
 
 		// Computers.
@@ -30,7 +33,7 @@ class Solution_dg_linear : public Solution
 	public:
 		// Constructors.
 		Solution_dg_linear(Mesh* const &a_mesh, Solution_dg_linear* const &a_solution);
-		Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f);
+		Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f, const double &a_epsilon, f_double const &a_c);
 
 		// Solvers.
 		void Solve(const double &a_cgTolerance);
@@ -41,6 +44,8 @@ class Solution_dg_linear : public Solution
 
 		// Getters.
 		f_double get_f() const;
+		double get_epsilon() const;
+		f_double get_c() const;
 		std::string get_typeName() const;
 };
 

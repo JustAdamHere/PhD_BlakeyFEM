@@ -29,13 +29,15 @@
  * 
  * @param[in] a_mesh 		The mesh the solution is defined on.
  ******************************************************************************/
-Solution_dg_linear::Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f)
+Solution_dg_linear::Solution_dg_linear(Mesh* const &a_mesh, f_double const &a_f, const double &a_epsilon, f_double const &a_c)
 {
 	this->noElements		= a_mesh->get_noElements();
 	this->solution 			.resize(a_mesh->get_noNodes());
 	this->boundaryConditions.resize(2);
 	this->mesh 				= a_mesh;
 	this->f       = a_f; 
+	this->epsilon = a_epsilon;
+	this->c       = a_c;
 	this->linear  = true;
 }
 
@@ -46,6 +48,8 @@ Solution_dg_linear::Solution_dg_linear(Mesh* const &a_mesh, Solution_dg_linear* 
 	this->boundaryConditions.resize(2);
 	this->mesh 				= a_mesh;
 	this->f       = a_solution->get_f();
+	this->epsilon = a_solution->get_epsilon();
+	this->c       = a_solution->get_c();
 	this->linear  = true;
 }
 
@@ -69,7 +73,7 @@ double Solution_dg_linear::l(Element* currentElement, f_double &basis)
 	return integral;
 }
 
-double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_double &basis2_)
+double Solution_dg_linear::a(Element* currentElement, f_double &basis1, f_double &basis2, f_double &basis1_, f_double &basis2_)
 {
 	double J = currentElement->get_Jacobian();
 	double integral = 0;
@@ -82,7 +86,16 @@ double Solution_dg_linear::a(Element* currentElement, f_double &basis1_, f_doubl
 	{
 		double b_value = basis1_(coordinates[i]) * basis2_(coordinates[i]);
 
-		integral += b_value*weights[i]/J;
+		integral += this->epsilon*b_value*weights[i]/J;
+	}
+
+	for (int k=0; k<coordinates.size(); ++k)
+	{
+		double b_value = basis1(coordinates[k]) * basis2(coordinates[k]);
+
+		double c_value = this->c(currentElement->mapLocalToGlobal(coordinates[k]));
+
+		integral += c_value*b_value*weights[k]*J;
 	}
 
 	return integral;
@@ -128,7 +141,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 				f_double basis2_ = currentElement->basisLegendre(a, 1);
 
 				double value = stiffnessMatrix(i, j);
-				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1_, basis2_));
+				stiffnessMatrix.set(i, j, value + this->a(currentElement, basis1, basis2, basis1_, basis2_));
 			}
 		}
 	}
@@ -137,6 +150,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 	double theta = -1;
 
 	// Loop over faces.
+	// This could DEFINITELY be reduced into a few simple routines rather than this mess.
 	for (int faceNo=0; faceNo<this->mesh->get_noNodes(); ++faceNo)
 	{
 		double currentFace = this->mesh->elements->get_nodeCoordinates()[faceNo];
@@ -168,7 +182,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double u_ = currentElement->basisLegendre(b, 1)(-1)/J;
 					double v_ = currentElement->basisLegendre(a, 1)(-1)/J;
 
-					double b_value = -(u_)*(-v) + theta*(v_)*(-u) + sigma*(-u)*(-v);
+					double b_value = -this->epsilon*(u_)*(-v) + theta*this->epsilon*(v_)*(-u) + sigma*(-u)*(-v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -202,7 +216,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double u_ = currentElement->basisLegendre(b, 1)(1)/J;
 					double v_ = currentElement->basisLegendre(a, 1)(1)/J;
 
-					double b_value = -(u_)*(v) + theta*(v_)*(u) + sigma*(u)*(v);
+					double b_value = -this->epsilon*(u_)*(v) + theta*this->epsilon*(v_)*(u) + sigma*(u)*(v);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -238,7 +252,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double um_ = prevElement->basisLegendre(b, 1)(1)/J1;
 					double vm_ = prevElement->basisLegendre(a, 1)(1)/J1;
 
-					double b_value = -(um_)*(vm)/2 + theta*(vm_)*(um)/2 + sigma*(um)*(vm);
+					double b_value = -this->epsilon*(um_)*(vm)/2 + theta*this->epsilon*(vm_)*(um)/2 + sigma*(um)*(vm);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -254,7 +268,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double up_ = nextElement->basisLegendre(b, 1)(-1)/J2;
 					double vm_ = prevElement->basisLegendre(a, 1)( 1)/J1;
 
-					double b_value = -(up_)*(vm)/2 + theta*(vm_)*(-up)/2 + sigma*(-up)*(vm);
+					double b_value = -this->epsilon*(up_)*(vm)/2 + theta*this->epsilon*(vm_)*(-up)/2 + sigma*(-up)*(vm);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -275,7 +289,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double um_ = prevElement->basisLegendre(b, 1)( 1)/J1;
 					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J2;
 
-					double b_value = -(um_)*(-vp)/2 + theta*(vp_)*(um)/2 + sigma*(um)*(-vp);
+					double b_value = -this->epsilon*(um_)*(-vp)/2 + theta*this->epsilon*(vp_)*(um)/2 + sigma*(um)*(-vp);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -291,7 +305,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 					double up_ = nextElement->basisLegendre(b, 1)(-1)/J2;
 					double vp_ = nextElement->basisLegendre(a, 1)(-1)/J2;
 
-					double b_value = -(up_)*(-vp)/2 + theta*(vp_)*(-up)/2 + sigma*(-up)*(-vp);
+					double b_value = -this->epsilon*(up_)*(-vp)/2 + theta*this->epsilon*(vp_)*(-up)/2 + sigma*(-up)*(-vp);
 
 					double value = stiffnessMatrix(i, j);
 					stiffnessMatrix.set(i, j, value + b_value);
@@ -308,15 +322,26 @@ f_double Solution_dg_linear::get_f() const
 	return this->f;
 }
 
+double Solution_dg_linear::get_epsilon() const
+{
+	return this->epsilon;
+}
+
+f_double Solution_dg_linear::get_c() const
+{
+	return this->c;
+}
+
 double Solution_dg_linear::compute_residual(const double &a_uh, const double &a_uh_2, const double &a_x) const
 {
-	return this->f(a_x) + a_uh_2;
+	return this->f(a_x) + this->epsilon*a_uh_2 - this->c(a_x)*a_uh;
 }
 
 // Not entirely sure that this is correct...
 double Solution_dg_linear::compute_energyNormDifference2(f_double const &a_u, f_double const &a_u_1) const
 {
 	int n = this->mesh->get_noElements();
+	double sqrt_epsilon = sqrt(this->epsilon);
 
 	double norm = 0;
 
@@ -340,8 +365,8 @@ double Solution_dg_linear::compute_energyNormDifference2(f_double const &a_u, f_
 
 			double Jacobian = currentElement->get_Jacobian();
 
-			norm += pow((u_1 - uh_1), 2)*weights[j]*Jacobian
-				 +  pow(sqrt(this->f(currentElement->mapLocalToGlobal(coordinates[j])))*(u - uh), 2)*weights[j]*Jacobian;
+			norm += pow(sqrt_epsilon*(u_1 - uh_1), 2)*weights[j]*Jacobian
+				 +  pow(sqrt(this->c(currentElement->mapLocalToGlobal(coordinates[j])))*(u - uh), 2)*weights[j]*Jacobian;
 		}
 	}
 
@@ -386,7 +411,7 @@ double Solution_dg_linear::compute_errorIndicator(const double &a_i) const
 		double curr_uh_1 = compute_uh(a_i,    1, 1);
 		double next_uh_1 = compute_uh(a_i+1, -1, 1);
 
-		norm_2_face += pow(sqrt((curr_uh_1)/2 - (next_uh_1)/2), 2)*Jacobian;
+		norm_2_face += pow(sqrt(fabs((curr_uh_1)/2 - (next_uh_1)/2)), 2)*Jacobian;
 		//norm_2_face += pow(curr_uh_1/2 - next_uh_1/2, 2);
 	}
 
@@ -399,7 +424,7 @@ double Solution_dg_linear::compute_errorIndicator(const double &a_i) const
 		double prev_uh_1 = compute_uh(a_i-1,  1, 1);
 		double curr_uh_1 = compute_uh(a_i,   -1, 1);
 
-		norm_2_face += pow(sqrt((prev_uh_1)/2 - (curr_uh_1)/2), 2)*Jacobian;
+		norm_2_face += pow(sqrt(fabs((prev_uh_1)/2 - (curr_uh_1)/2)), 2)*Jacobian;
 		//norm_2_face += pow(prev_uh_1 - curr_uh_1, 2);
 	}
 
