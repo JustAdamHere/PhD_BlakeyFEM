@@ -290,23 +290,17 @@ namespace refinement
 
 	void refinement(const Mesh* a_mesh, Mesh** a_meshNew, const Solution* a_solution, Solution** a_solutionNew, const double &a_solveTolerance, const double &a_adaptivityTolerance, const int &a_maxIterations, const bool &a_refineh, const bool &a_refinep, const bool &a_output, f_double const exact, f_double const exact_)
 	{
-		std::cout << "HEY!" << std::endl;
-		//std::cout << (typeid(a_solution).hash_code() == typeid(a_solution).hash_code()) << std::endl;
-		//std::cout << (typeid(a_solutionNew).hash_code()) << std::endl;
-		std::cout << (typeid(Solution).name()) << std::endl;
-		std::cout << (typeid(Solution_linear).name()) << std::endl;
-		std::cout << (typeid(Solution_nonlinear).name()) << std::endl;
-		std::cout << (typeid(Solution_dg_linear).name()) << std::endl;
-		std::cout << (typeid(a_solution).name()) << std::endl;
-		std::cout << (typeid(a_solutionNew).name()) << std::endl;
-		std::cout << a_solution->get_typeName() << std::endl;
 		// Starting conditions.
 		Mesh*     newMesh     = new Mesh(*a_mesh);
 		Solution* newSolution;
-		if (a_solution->get_linear())
+
+		// Cast to correct child class.
+		if (a_solution->get_typeName() == "Solution_linear")
 			newSolution = new Solution_linear(*const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution)));
-		else
+		else if (a_solution->get_typeName() == "Solution_nonlinear")
 			newSolution = new Solution_nonlinear(*const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution)));
+		else if (a_solution->get_typeName() == "Solution_dg_linear")
+			newSolution = new Solution_dg_linear(*const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution)));
 
 		// Loop variables initialisation.
 		double errorIndicator, errorIndicatorPrev = 0;
@@ -340,6 +334,11 @@ namespace refinement
 			// Error indicators calculation.
 			std::vector<double> errorIndicators = currentSolution->compute_errorIndicators();
 
+			std::cout << " *** ERROR INDICATORS ***" << std::endl;
+			for (int i=0; i<errorIndicators.size(); ++i)
+				std::cout << errorIndicators[i] << std::endl;
+			std::cout << std::endl << std::endl;
+
 			// Outputs details if asked.
 			if (a_output)
 			{
@@ -358,7 +357,7 @@ namespace refinement
 			}
 			
 			// Refine and create new mesh and solution.
-			if (a_solution->get_linear())
+			if (a_solution->get_typeName() == "Solution_linear" or a_solution->get_typeName() == "Solution_dg_linear")
 			{
 				if (a_refineh && a_refinep)
 					refine_hp(currentMesh, &newMesh, currentSolution, &newSolution, errorIndicators);

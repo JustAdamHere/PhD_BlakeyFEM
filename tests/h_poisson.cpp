@@ -19,30 +19,26 @@ double zero(double x)
 	return 0;
 }
 
-double one(double x)
+double f(double x)
 {
-	return 1;
+	return pow(M_PI, 2)*sin(M_PI*x);
 }
 
 double exact(double x)
 {
-	double a = 1e-3;
-
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1) - (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1) + 1;
+	return sin(M_PI*x);
 }
 
 double exact_(double x)
 {
-	double a = 1e-3;
-
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a) + (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a);
+	return M_PI*cos(M_PI*x);
 }
 
 int main()
 {
 	// Sets up problem.
 	Mesh*     myMesh     = new Mesh(4);
-	Solution_linear* mySolution = new Solution_linear(myMesh, one, 1e-3, one);
+	Solution_linear* mySolution = new Solution_linear(myMesh, f, 1, zero);
 
 	// Adaptivity variables.
 	Mesh*            myNewMesh;
