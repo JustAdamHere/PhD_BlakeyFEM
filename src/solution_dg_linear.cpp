@@ -112,6 +112,7 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 	double A = 0;
 	double B = 0;
 
+	this->mesh->elements->calculateDoFs();
 	int n = this->mesh->elements->get_dg_DoF();
 
 	Elements* elements = this->mesh->elements;
@@ -314,6 +315,12 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		}
 	}
 
+	for (int i=0; i<this->mesh->elements->get_noElements(); ++i)
+	{
+		//std::cout << this->mesh->elements->get_dg_elementDoFs(i) << std::endl;
+	}
+	std::cout << n << std::endl;
+
 	this->solution = linearSystems::GaussJordan(stiffnessMatrix, loadVector);
 }
 
@@ -444,6 +451,24 @@ double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const 
 		f_double basis = (*(this->mesh->elements))[a_i]->basisLegendre(j, a_n);
 
 		result += this->solution[elementDoFs[j]] * basis(a_xi);
+	}
+
+	return result / pow(J, a_n);
+}
+
+double Solution_dg_linear::compute_uh(const int &a_i, const double &a_xi, const int &a_n, const std::vector<double> &a_u) const
+{
+	Element* currentElement = (*(this->mesh->elements))[a_i];
+	double J = currentElement->get_Jacobian(); // Needs to be inverse transpose of Jacobi in dimensions higher than 1.
+
+	double result = 0;
+
+	std::vector<int> elementDoFs = this->mesh->elements->get_dg_elementDoFs(a_i);
+	for (int j=0; j<elementDoFs.size(); ++j)
+	{
+		f_double basis = (*(this->mesh->elements))[a_i]->basisFunction(j, a_n);
+
+		result += a_u[elementDoFs[j]] * basis(a_xi);
 	}
 
 	return result / pow(J, a_n);

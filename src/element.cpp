@@ -529,13 +529,16 @@ std::vector<int> Elements::get_elementDoFs(const int &a_i) const
 
 std::vector<int> Elements::get_dg_elementDoFs(const int &a_i) const
 {
-	// ASSUMES UNIFORM P!!!
-	int p = elements[0]->get_polynomialDegree();
+	int p = elements[a_i]->get_polynomialDegree();
+
+	int offset = 0;
+	for (int i=0; i<a_i; ++i)
+		offset += this->elements[i]->get_polynomialDegree() + 1;
 
 	std::vector<int> DoFs(p+1);
 
 	for (int i=0; i<p+1; ++i)
-		DoFs[i] = (p+1)*a_i + i;
+		DoFs[i] = offset + i;
 
 	return DoFs;
 }

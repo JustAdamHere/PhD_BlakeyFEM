@@ -100,6 +100,17 @@ namespace refinement
 
 		elements->calculateDoFs();
 
+		// std::cout << "Hello" << std::endl;
+		// std::cout << newNoElements << std::endl;
+		// for (int i=0; i<totalNoElements; ++i)
+		// {
+		// 	std::cout << (*newElements)[i]->get_nodeCoordinates()[0] << ", " << (*newElements)[i]->get_nodeCoordinates()[1] << std::endl;
+		// 	std::cout << (*newElements)[i]->get_polynomialDegree() << std::endl;
+		// 	std::cout << ((refineh[i])?"Refined h!":"") << std::endl;
+		// 	std::cout << ((refinep[i])?"Refined p!":"") << std::endl;
+		// }
+		// std::cout << std::endl << std::endl;
+
 		// Creates new mesh and solution.
 		*a_meshNew = new Mesh(elements);
 		/*if (a_solution->get_linear())
@@ -108,22 +119,36 @@ namespace refinement
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);*/
 
-		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// 	*a_solutionNew = new Solution_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+		// 	*a_solutionNew = new Solution_dg_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		// 	*a_solutionNew = new Solution_nonlinear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
+		// 	);
+		if (a_solution->get_typeName() == "Solution_linear")
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
-			*a_solutionNew = new Solution_dg_linear(
-				*a_meshNew,
-				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
-			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		else if (a_solution->get_typeName() == "Solution_nonlinear")
 			*a_solutionNew = new Solution_nonlinear(
 				*a_meshNew,
 				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
 			);
-
+		else if (a_solution->get_typeName() == "Solution_dg_linear")
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+			);
 	}
 
 	void refine_h(const Mesh* a_mesh, Mesh** a_meshNew, const Solution* a_solution, Solution** a_solutionNew, const std::vector<double> &a_errorIndicators)
@@ -204,20 +229,35 @@ namespace refinement
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);*/
 
-		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// 	*a_solutionNew = new Solution_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+		// 	*a_solutionNew = new Solution_dg_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		// 	*a_solutionNew = new Solution_nonlinear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
+		// 	);
+		if (a_solution->get_typeName() == "Solution_linear")
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
-			*a_solutionNew = new Solution_dg_linear(
-				*a_meshNew,
-				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
-			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		else if (a_solution->get_typeName() == "Solution_nonlinear")
 			*a_solutionNew = new Solution_nonlinear(
 				*a_meshNew,
 				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
+			);
+		else if (a_solution->get_typeName() == "Solution_dg_linear")
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
 			);
 	}
 
@@ -271,20 +311,35 @@ namespace refinement
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);*/
 
-		if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// if (typeid(*a_solution).hash_code() == typeid(Solution_linear).hash_code())
+		// 	*a_solutionNew = new Solution_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
+		// 	*a_solutionNew = new Solution_dg_linear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
+		// 	);
+		// else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		// 	*a_solutionNew = new Solution_nonlinear(
+		// 		*a_meshNew,
+		// 		const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
+		// 	);
+		if (a_solution->get_typeName() == "Solution_linear")
 			*a_solutionNew = new Solution_linear(
 				*a_meshNew,
 				const_cast<Solution_linear*>(static_cast<const Solution_linear*>(a_solution))
 			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_dg_linear).hash_code())
-			*a_solutionNew = new Solution_dg_linear(
-				*a_meshNew,
-				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
-			);
-		else if (typeid(*a_solution).hash_code() == typeid(Solution_nonlinear).hash_code())
+		else if (a_solution->get_typeName() == "Solution_nonlinear")
 			*a_solutionNew = new Solution_nonlinear(
 				*a_meshNew,
 				const_cast<Solution_nonlinear*>(static_cast<const Solution_nonlinear*>(a_solution))
+			);
+		else if (a_solution->get_typeName() == "Solution_dg_linear")
+			*a_solutionNew = new Solution_dg_linear(
+				*a_meshNew,
+				const_cast<Solution_dg_linear*>(static_cast<const Solution_dg_linear*>(a_solution))
 			);
 	}
 
@@ -304,6 +359,9 @@ namespace refinement
 
 		// Loop variables initialisation.
 		double errorIndicator, errorIndicatorPrev = 0;
+		double energyNorm, energyNormPrev = 0;
+		double L2Norm, L2NormPrev = 0;
+		double H1Norm, H1NormPrev = 0;
 		int iteration;
 		Mesh*     currentMesh;
 		Solution* currentSolution;
@@ -334,10 +392,10 @@ namespace refinement
 			// Error indicators calculation.
 			std::vector<double> errorIndicators = currentSolution->compute_errorIndicators();
 
-			std::cout << " *** ERROR INDICATORS ***" << std::endl;
-			for (int i=0; i<errorIndicators.size(); ++i)
-				std::cout << errorIndicators[i] << std::endl;
-			std::cout << std::endl << std::endl;
+			// std::cout << " *** ERROR INDICATORS ***" << std::endl;
+			// for (int i=0; i<errorIndicators.size(); ++i)
+			// 	std::cout << errorIndicators[i] << std::endl;
+			// std::cout << std::endl << std::endl;
 
 			// Outputs details if asked.
 			if (a_output)
@@ -346,7 +404,17 @@ namespace refinement
 				std::cout << "#Elements       : " << currentMesh->get_noElements() << std::endl;
 				std::cout << "DoF             : " << currentMesh->elements->get_DoF() << std::endl;
 				if (exact != 0 && exact_ != 0)
-					std::cout << "Energy          : " << sqrt(currentSolution->compute_energyNormDifference2(exact, exact_)) << std::endl;
+				{
+					energyNorm = sqrt(currentSolution->compute_energyNormDifference2(exact, exact_));
+					L2Norm     = sqrt(currentSolution->compute_L2NormDifference2(exact));
+					H1Norm     = sqrt(currentSolution->compute_H1NormDifference2(exact, exact_));
+					std::cout << "Energy          : " << energyNorm << std::endl;
+					std::cout << "Energy ratio    : " << energyNormPrev/energyNorm << std::endl;
+					std::cout << "L2 norm         : " << L2Norm << std::endl;
+					std::cout << "L2 norm ratio   : " << L2NormPrev/L2Norm << std::endl;
+					std::cout << "H1 norm         : " << H1Norm << std::endl;
+					std::cout << "H1 norm ratio   : " << H1NormPrev/H1Norm << std::endl;
+				}
 				std::cout << "Error indicator : " << errorIndicator << std::endl;
 				std::cout << "Max indicator   : " << *std::max_element(errorIndicators.begin(), errorIndicators.end()) << std::endl;
 				std::cout << "Indicator ratio : " << errorIndicatorPrev/errorIndicator << std::endl;
@@ -382,6 +450,9 @@ namespace refinement
 			currentMesh = newMesh;
 			currentSolution = newSolution;
 			errorIndicatorPrev = errorIndicator;
+			energyNormPrev = energyNorm;
+			L2NormPrev = L2Norm;
+			H1NormPrev = H1Norm;
 		}
 
 		// Closes convergence file.

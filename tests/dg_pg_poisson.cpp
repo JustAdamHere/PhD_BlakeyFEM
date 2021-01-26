@@ -39,12 +39,20 @@ double zero(double x)
 int main()
 {
 	// Sets up problem.
-	Mesh*               myMesh     = new Mesh(64);
+	Mesh*               myMesh     = new Mesh(2);
 	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f, 1, zero);
 
-	mySolution->Solve(1e-15);
-	mySolution->output_solution(exact);
-	mySolution->output_mesh();
+	// Refinement variables.
+	Mesh*               myNewMesh;
+	Solution_dg_linear* myNewSolution_type;
+	Solution*           myNewSolution = myNewSolution_type;
+
+	refinement::refinement_g(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 0, 5, false, true, true, exact, exact_);
+
+	// Solves the new problem, and then outputs solution and mesh to files.
+	myNewSolution->output_solution(exact);
+	myNewSolution->Solve(1e-15);
+	myNewSolution->output_mesh();
 
 	//delete myNewSolution; // DEFFO a memory leak somewhere.
 	delete mySolution;
