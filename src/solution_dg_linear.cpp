@@ -164,8 +164,9 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
 
 			double J = currentElement->get_Jacobian();
+			double p = currentElement->get_polynomialDegree();
 			double h = 2*J;
-			double sigma = 10/h;
+			double sigma = 10*pow(p, 2)/h;
 
 			for (int a=0; a<elementDoFs.size(); ++a)
 			{
@@ -198,8 +199,9 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 			std::vector<int> elementDoFs = elements->get_dg_elementDoFs(elementNo);
 
 			double J = currentElement->get_Jacobian();
+			double p = currentElement->get_polynomialDegree();
 			double h = 2*J;
-			double sigma = 10/h;
+			double sigma = 10*pow(p, 2)/h;
 
 			for (int a=0; a<elementDoFs.size(); ++a)
 			{
@@ -236,8 +238,11 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 
 			double J1 = (*(this->mesh->elements))[prevElementNo]->get_Jacobian();
 			double J2 = (*(this->mesh->elements))[nextElementNo]->get_Jacobian();
+			double p1 = (*(this->mesh->elements))[prevElementNo]->get_polynomialDegree();
+			double p2 = (*(this->mesh->elements))[nextElementNo]->get_polynomialDegree();
 			double h = 2*(J1+J2)/2;
-			double sigma = 10/h;
+			double p = (p1+p2)/2;
+			double sigma = 10*pow(p, 2)/h;
 
 			for (int a=0; a<prevElementDoFs.size(); ++a)
 			{
@@ -315,11 +320,11 @@ void Solution_dg_linear::Solve(const double &a_cgTolerance)
 		}
 	}
 
-	for (int i=0; i<this->mesh->elements->get_noElements(); ++i)
-	{
-		//std::cout << this->mesh->elements->get_dg_elementDoFs(i) << std::endl;
-	}
-	std::cout << n << std::endl;
+	// for (int i=0; i<this->mesh->elements->get_noElements(); ++i)
+	// {
+	// 	//std::cout << this->mesh->elements->get_dg_elementDoFs(i) << std::endl;
+	// }
+	// std::cout << n << std::endl;
 
 	this->solution = linearSystems::GaussJordan(stiffnessMatrix, loadVector);
 }

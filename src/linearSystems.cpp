@@ -15,16 +15,19 @@
 
 #include <iostream>
 
-/******************************************************************************
- * thomasInvert
- * 
- * @details    Inverts a tridiagonal matrix.
- *
- * @param[in] n 			Gives the degree of the polynomial.
- * @param[in] x 			The point at which to evaluate the polynomial.
- ******************************************************************************/
 namespace linearSystems
 {
+	/******************************************************************************
+	 * __thomasInvert__
+	 * 
+	 * @details    Inverts a tridiagonal matrix.
+	 *
+	 * @param[in]  a 			The lower diagonal.
+	 * @param[in]  b 			The diagonal.
+	 * @param[in]  c 			The upper diagonal.
+	 * @param[in]  d 			The RHS of the system.
+	 * @param[out] solution		The solution vector.
+	 ******************************************************************************/
 	void thomasInvert(const std::vector<double> a, const std::vector<double> b, const std::vector<double> c, const std::vector<double> d, std::vector<double> &solution)
 	{
 		int n = b.size();
@@ -53,6 +56,17 @@ namespace linearSystems
 		}
 	}
 
+	/******************************************************************************
+	 * __conjugateGradient__
+	 * 
+	 * @details    Iteratively 'inverts' a symmetric matrix system.
+	 *
+	 * @param[in]  M 			The matrix.
+	 * @param[in]  b 			The RHS.
+	 * @param[in]  tolerance	The conjugate gradient tolerance.
+	 *
+	 * @return 					Returns the calculated solution.
+	 ******************************************************************************/
 	std::vector<double> conjugateGradient(const Matrix<double> &a_M, const std::vector<double> &a_b, const double &a_tolerance)
 	{
 		std::vector<double> x(a_M.get_noColumns(), 0);
@@ -83,8 +97,17 @@ namespace linearSystems
 		return x;
 	}
 
-	// Modified from:
-	// http://www.cplusplus.com/forum/beginner/124448/
+	/******************************************************************************
+	 * __GaussJordan__
+	 * 
+	 * @details    Inverts the matrix using Gauss-Jordan. This has been modified from
+	 * 				http://www.cplusplus.com/forum/beginner/124448/.
+	 *
+	 * @param[in]  M 			The matrix.
+	 * @param[in]  b 			The RHS.
+	 *
+	 * @return 					Returns the calculated solution.
+	 ******************************************************************************/
 	std::vector<double> GaussJordan(const Matrix<double> &a_M, const std::vector<double> &a_b)
 	{
 		assert(a_M.get_noColumns() == a_M.get_noRows());
@@ -153,18 +176,16 @@ namespace linearSystems
 		return x;
 	}
 
-	std::vector<double> direct(const Matrix_full<double> &a_M, const std::vector<double> &a_b)
-	{
-		int n = a_M.get_noRows();
-		Matrix_full<double> M_ = a_M.calculate_adjugate();
-
-		//M_ /= a_M.calculate_determinant();
-
-		std::vector<double> x = M_*a_b;
-
-		return x;
-	}
-
+	/******************************************************************************
+	 * __dotProduct__
+	 * 
+	 * @details    Calculates the dot product of two vectors.
+	 *
+	 * @param[in]  v1 	Vector 1.
+	 * @param[in]  v2 	Vector 2.
+	 *
+	 * @return 			Returns the dot product.
+	 ******************************************************************************/
 	double dotProduct(const std::vector<double> &a_v1, const std::vector<double> &a_v2)
 	{
 		double result = 0;
@@ -176,6 +197,16 @@ namespace linearSystems
 	}
 }
 
+/******************************************************************************
+ * __operator+=__
+ * 
+ * @details    Adds a vector to the first.
+ *
+ * @param[in]  v1 	Vector 1.
+ * @param[in]  v2 	Vector 2.
+ *
+ * @return 			Returns vector 1.
+ ******************************************************************************/
 std::vector<double>& operator+=(std::vector<double> &a_v1, const std::vector<double> &a_v2)
 {
 	for (int i=0; i<a_v1.size(); ++i)
@@ -184,6 +215,16 @@ std::vector<double>& operator+=(std::vector<double> &a_v1, const std::vector<dou
 	return a_v1;
 }
 
+/******************************************************************************
+ * __operator+__
+ * 
+ * @details    Adds two vectors together.
+ *
+ * @param[in]  v1 	Vector 1.
+ * @param[in]  v2 	Vector 2.
+ *
+ * @return 			Returns the result.
+ ******************************************************************************/
 std::vector<double> operator+(const std::vector<double> &a_v1, const std::vector<double> &a_v2)
 {
 	std::vector<double> result(a_v1.size());

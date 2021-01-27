@@ -11,6 +11,7 @@
 #include <functional>
 #include <vector>
 
+// Double function types.
 typedef std::function<double(double)>         f_double;
 typedef std::function<double(double, double)> f_double2;
 

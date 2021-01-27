@@ -16,14 +16,12 @@
 
 class Element
 {
-	// Mark as boundary?
 	private:
 		int elementNo;
 		int noNodes;
 		int polynomialDegree;
 		std::vector<int> nodeIndices;
 		const std::vector<double>* nodeCoordinates;
-		// Node coordiantes stored in elements, which a connectiviy array in element to tell you which nodes you're talking about.
 		void init_Element(const int &a_elementNo, const int &a_noNodes, const std::vector<int> &a_nodeIndices, const std::vector<double>* a_nodeCoordinates, const int &a_polynomialDegree);
 
 	public:

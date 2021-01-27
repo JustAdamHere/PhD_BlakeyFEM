@@ -155,7 +155,16 @@ namespace common
 	}
 }
 
-// OPERATOR-
+/******************************************************************************
+ * __operator-__
+ * 
+ * @details    Calculates the difference of two vectors.
+ *
+ * @param[in]  a_v1 Vector 1.
+ * @param[in]  a_v2 Vector 2.
+ *
+ * @return     The value of the difference.
+ ******************************************************************************/
 std::vector<double> operator-(const std::vector<double> &a_v1, const std::vector<double> &a_v2)
 {
 	std::vector<double> result = a_v1;
@@ -166,7 +175,16 @@ std::vector<double> operator-(const std::vector<double> &a_v1, const std::vector
 	return result;
 }
 
-// OPERATOR*
+/******************************************************************************
+ * __operator*__
+ * 
+ * @details    Calculates scalar times a vector.
+ *
+ * @param[in]  a_c Scalar.
+ * @param[in]  a_v Vector.
+ *
+ * @return     The product of scalar and vector.
+ ******************************************************************************/
 std::vector<double> operator*(const double &a_c, const std::vector<double> &a_v)
 {
 	std::vector<double> result = a_v;

@@ -24,9 +24,9 @@
  * 
  * @details 	 	Assigns values passed through from constructor or assignment operator.
  * 
- * @param[in] a_elementNo   		The element number of this element.
- * @param[in] a_noNodes 			Number of nodes in this element.
- * @param[in] a_nodeCoordiantes 	The coordinates of the nodes.
+ * @param[in] elementNo   		The element number of this element.
+ * @param[in] noNodes 			Number of nodes in this element.
+ * @param[in] nodeCoordiantes 	The coordinates of the nodes.
  ******************************************************************************/
 void Element::init_Element(const int &a_elementNo, const int &a_noNodes, const std::vector<int> &a_nodeIndices, const std::vector<double>* a_nodeCoordinates, const int &a_polynomialDegree)
 {
@@ -42,15 +42,16 @@ void Element::init_Element(const int &a_elementNo, const int &a_noNodes, const s
  * 
  * @details 	 	Copy constructor.
 
- * @param[in] a_element 	Element to copy.
+ * @param[in] element 	Element to copy.
  ******************************************************************************/
 Element::Element(const Element &a_element)
-: Element::Element(	a_element.get_elementNo(),
-					a_element.get_noNodes(),
-					a_element.get_nodeIndices(),
-					a_element.get_rawNodeCoordinates(),
-					a_element.get_polynomialDegree()
-				  )
+: Element::Element(
+	a_element.get_elementNo(),
+	a_element.get_noNodes(),
+	a_element.get_nodeIndices(),
+	a_element.get_rawNodeCoordinates(),
+	a_element.get_polynomialDegree()
+)
 {
 	//
 }
@@ -60,9 +61,11 @@ Element::Element(const Element &a_element)
  * 
  * @details 	 	The main constructor for an element.
  * 
- * @param a_elementNo   		The element number of this element.
- * @param a_noNodes 			Number of nodes in this element.
- * @param a_nodeCoordiantes 	The coordinates of the nodes.
+ * @param elementNo   		The element number of this element.
+ * @param noNodes 			Number of nodes in this element.
+ * @param nodeIndices			The node indices for this element.
+ * @param nodeCoordiantes 	Poitner to the coordinates of the nodes.
+ * @param polynomialDegree	Polynomial degree on this elemenet.
  ******************************************************************************/
 Element::Element(const int &a_elementNo, const int &a_noNodes, const std::vector<int> &a_nodeIndices, const std::vector<double>* a_nodeCoordiantes, const int &a_polynomialDegree)
 {
@@ -82,7 +85,7 @@ Element::~Element()
 /******************************************************************************
  * __operator=__
  * 
- * @details 	Equals operator.
+ * @details 	Equals operator on elements.
  * 
  * @param[in] a_element 	An element passed to the operator.
  ******************************************************************************/
@@ -98,7 +101,8 @@ Element& Element::operator=(const Element &a_element)
  * 
  * @details 	Takes a local coordinate and maps it to a global coordinate.
  * 
- * @param[in] a_xi 		A local coordinate.
+ * @param[in] xi 		A local coordinate.
+ *
  * @return 				Returns the global coordinate.
  ******************************************************************************/
 double Element::mapLocalToGlobal(const double &a_xi)
@@ -118,6 +122,13 @@ double Element::get_Jacobian() const
 	return (get_nodeCoordinates()[1] - get_nodeCoordinates()[0])/2;
 }
 
+/******************************************************************************
+ * __basisLegendre__
+ * 
+ * @details 	Gets the Legendre polynomial of a given degree and derivative.
+ * 
+ * @return 		The function.
+ ******************************************************************************/
 f_double Element::basisLegendre(const int &a_n, const int &a_i)
 {
 	return quadrature::legendrePolynomial(a_n, a_i);
@@ -126,10 +137,11 @@ f_double Element::basisLegendre(const int &a_n, const int &a_i)
 /******************************************************************************
  * __basisFunction__
  * 
- * @details 	Calculates the ith derivative of the nth basis function.
+ * @details 	Calculates the ith derivative of the nth Lobatto shape function.
  * 
- * @param[in] a_n 		Which basis function to return.
- * @param[in] a_i 		Which derivative to return.
+ * @param[in] n 		Which basis function to return.
+ * @param[in] i 		Which derivative to return.
+ *
  * @return  			The requested derivative basis function.
  ******************************************************************************/
 f_double Element::basisFunction(const int &a_n, const int &a_i)
@@ -270,16 +282,39 @@ std::vector<double> Element::get_nodeCoordinates() const
 	return tempVector;
 }
 
+/******************************************************************************
+ * __rawNodeCoordinates__
+ * 
+ * @details 	Returns the value of the private pointer variable 'rawNodeCoordinates'.
+ * 
+ * @return  	The value of rawNodeCoordinates.
+ ******************************************************************************/
 const std::vector<double>* Element::get_rawNodeCoordinates() const
 {
 	return this->nodeCoordinates;
 }
 
+/******************************************************************************
+ * __nodeIndices__
+ * 
+ * @details 	Returns the value of the private variable 'nodeIndices'.
+ * 
+ * @return  	The value of nodeIndices.
+ ******************************************************************************/
 std::vector<int> Element::get_nodeIndices() const
 {
 	return this->nodeIndices;
 }
 
+/******************************************************************************
+ * __elementQuadrature__
+ * 
+ * @details 	Returns the Gauss-Legendre quadrature points and weights on the
+ 				 reference element. The order of the quadrature is chosen by the
+ 				 polynomial degree on the current element.
+ * 
+ * @return  	The coordinates and weights for the quadrature.
+ ******************************************************************************/
 void Element::get_elementQuadrature(std::vector<double> &a_coordinates, std::vector<double> &a_weights) const
 {
 	int n = ceil(double(2 * this->get_polynomialDegree() + 1)/2) + 1;
@@ -294,11 +329,23 @@ void Element::get_elementQuadrature(std::vector<double> &a_coordinates, std::vec
 	}
 }
 
+/******************************************************************************
+ * __polynomialDegree__
+ * 
+ * @details 	Returns the value of the private variable 'polynomialDegree'.
+ * 
+ * @return  	The value of polynomialDegree.
+ ******************************************************************************/
 int Element::get_polynomialDegree() const
 {
 	return this->polynomialDegree;
 }
 
+/******************************************************************************
+ * __polynomialDegree__
+ * 
+ * @details 	Sets the value of the private variable 'polynomialDegree'
+ ******************************************************************************/
 void Element::set_polynomialDegree(const int &a_p)
 {
 	this->polynomialDegree = a_p;
@@ -336,6 +383,9 @@ Elements::Elements(const int &a_noElements)
 	// *********
 	// Elements.
 	// *********
+	// Some example domains to create. A negative number creates twice as many
+	//  nodes on the left side as the right side. In real applications, it's
+	//  likely that you won't use this procedure at all.
 	if (a_noElements > 0)
 	{
 		// Creates the node coordinates.
@@ -400,6 +450,15 @@ Elements::Elements(const int &a_noElements)
 	}
 }
 
+/******************************************************************************
+ * __Elements__
+ * 
+ * @details 	Constructor taking 2 parameters to set number of elements and
+ 				 the node coordinates.
+ * 
+ * @param[in] noElements 	Number of elements.
+ * @param[in] noElements 	The node coordinates.
+ ******************************************************************************/
 Elements::Elements(const int &a_noElements, const std::vector<double> &a_nodeCoordinates)
 {
 	// Sets member variable values.
@@ -445,6 +504,16 @@ Elements::Elements(const int &a_noElements, const std::vector<double> &a_nodeCoo
 	}
 }
 
+/******************************************************************************
+ * __Elements__
+ * 
+ * @details 	Constructor taking 3 parameters to set number of elements, the
+ 				 node coordinates, and the actual elements.
+ * 
+ * @param[in] noElements 	Number of elements.
+ * @param[in] noElements 	The node coordinates.
+ * @param[in] elements 	    The pre-instantiated elements.
+ ******************************************************************************/
 Elements::Elements(const int &a_noElements, const std::vector<double> &a_nodeCoordinates, Element*** &a_elements)
 {
 	// Pointer to elements for populating later.
@@ -487,8 +556,8 @@ Elements::~Elements()
  * 
  * @details 	Indexes the elements.
  * 
- * @param[in] 	The element index requested.
- * @return  	The element of the requested index.
+ * @param[in] i 	The element index requested.
+ * @return  		The element of the requested index.
  ******************************************************************************/
 Element* Elements::operator[](const int &a_i)
 {
@@ -496,7 +565,7 @@ Element* Elements::operator[](const int &a_i)
 }
 
 /******************************************************************************
- * __get_noElements__
+ * __noElements__
  * 
  * @details     Gets the value of the member variable 'noElements'.
  *
@@ -507,11 +576,30 @@ int Elements::get_noElements() const
 	return this->noElements;
 }
 
+/******************************************************************************
+ * __elementConnectivity__
+ * 
+ * @details     Gets the value of the member variable 'elementConnectivity' on
+ 				 the provided element number.
+ *
+ * @param[in] i 	Element to get the connectivity of.
+ *
+ * @return     		The connectivity on this element.
+ ******************************************************************************/
 std::vector<int> Elements::get_elementConnectivity(const int &a_i) const
 {
 	return this->elementConnectivity[a_i];
 }
 
+/******************************************************************************
+ * __elementDoFs__
+ * 
+ * @details     Gets the CG element DoFs.
+ *
+ * @param i 	The element to get the DoFs of.
+ *
+ * @return     	The degrees of freedom (DoF).
+ ******************************************************************************/
 std::vector<int> Elements::get_elementDoFs(const int &a_i) const
 {
 	// Standard degrees of freedom.
@@ -527,6 +615,15 @@ std::vector<int> Elements::get_elementDoFs(const int &a_i) const
 	return DoFs;
 }
 
+/******************************************************************************
+ * __dg_elementDoFs__
+ * 
+ * @details     Gets the DG element DoFs.
+ *
+ * @param i 	The element to get the DoFs of.
+ *
+ * @return     	The degrees of freedom (DoF).
+ ******************************************************************************/
 std::vector<int> Elements::get_dg_elementDoFs(const int &a_i) const
 {
 	int p = elements[a_i]->get_polynomialDegree();
@@ -543,26 +640,61 @@ std::vector<int> Elements::get_dg_elementDoFs(const int &a_i) const
 	return DoFs;
 }
 
+/******************************************************************************
+ * __DoF__
+ * 
+ * @details     Gets the total number of CG DoFs.
+ *
+ * @return     The number of DoFs.
+ ******************************************************************************/
 int Elements::get_DoF() const
 {
 	return this->startDoFs.back();
 }
 
+/******************************************************************************
+ * __DoF__
+ * 
+ * @details     Gets the total number of DG DoFs.
+ *
+ * @return     The number of DoFs.
+ ******************************************************************************/
 int Elements::get_dg_DoF() const
 {
 	return this->startDoFs.back() + this->noElements - 1;
 }
 
+/******************************************************************************
+ * __nodeCoordinates__
+ * 
+ * @details     Gets the value of the member variable 'nodeCoordinates'.
+ *
+ * @return     The node coordinates.
+ ******************************************************************************/
 std::vector<double> Elements::get_nodeCoordinates() const
 {
 	return this->nodeCoordinates;
 }
 
+/******************************************************************************
+ * __rawNodeCoordinates__
+ * 
+ * @details     Gets the value of the member variable 'rawNodeCoordinates'.
+ *
+ * @return     The raw node coordinates (ie the pointer value).
+ ******************************************************************************/
 const std::vector<double>* Elements::get_rawNodeCoordinates() const
 {
 	return &this->nodeCoordinates;
 }
 
+/******************************************************************************
+ * __polynomialDegrees__
+ * 
+ * @details     Gets all polynomial degrees from all elements.
+ *
+ * @return     The polynomial degrees.
+ ******************************************************************************/
 std::vector<int> Elements::get_polynomialDegrees() const
 {
 	int n = this->noElements;
@@ -575,6 +707,14 @@ std::vector<int> Elements::get_polynomialDegrees() const
 	return output;
 }
 
+/******************************************************************************
+ * __calcualteDoFs__
+ * 
+ * @details     Calculates the DoFs. This can be expensive if you're doing
+ 				 often so we leave this separated. It's also useful in the
+ 				 refinement procedures to not calculate this until all of the 
+ 				 elements have been added.
+ ******************************************************************************/
 void Elements::calculateDoFs()
 {
 	this->startDoFs[0] = this->noElements + 1;

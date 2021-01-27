@@ -15,11 +15,6 @@
 
 #include <functional>
 
-double zero(double x)
-{
-	return 0;
-}
-
 double one(double x)
 {
 	return 1;
@@ -27,30 +22,44 @@ double one(double x)
 
 double exact(double x)
 {
-	double a = 1e-5;
+	double s = 100;
 
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1) - (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1) + 1;
+	return atan(s*(x-double(1)/3)) + (1-x)*atan(s/3) - x*atan(2*s/3);
 }
 
-double exact_(double x)
+double exact1(double x)
 {
-	double a = 1e-5;
+	double s = 100;
 
-	return -exp(x/sqrt(a))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a) + (exp(-x/sqrt(a)) * exp(double(1)/sqrt(a)))/(exp(double(1)/sqrt(a)) + 1)/sqrt(a);
+	//return s/(pow(s, 2)*pow(x-double(2)/3, 2) + 1) - atan(2*s/3) - atan(s/3);
+	return s/(pow(s, 2)*pow(x-double(1)/3, 2) + 1) - atan(2*s/3) - atan(s/3);
+}
+
+double exact2(double x)
+{
+	double s = 100;
+
+	//return -2*pow(s, 3)*(x-double(2)/3)/pow(pow(s, 2)*pow(x-double(2)/3, 2) + 1, 2);
+	return -2*pow(s, 3)*(x-double(1)/3)/pow(pow(s, 2)*pow(x-double(1)/3, 2) + 1, 2);
+}
+
+double f(double x)
+{
+	return -exact2(x) + exact(x);
 }
 
 int main()
 {
 	// Sets up problem.
-	Mesh*               myMesh     = new Mesh(2);
-	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, one, 1e-5, one);
+	Mesh*               myMesh     = new Mesh(6);
+	Solution_dg_linear* mySolution = new Solution_dg_linear(myMesh, f, 1, one);
 
 	// Refinement variables.
 	Mesh*               myNewMesh;
 	Solution_dg_linear* myNewSolution_type;
 	Solution*           myNewSolution = myNewSolution_type;
 
-	refinement::refinement(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 0, 20, true, true, true, exact, exact_);
+	refinement::refinement(myMesh, &myNewMesh, mySolution, &myNewSolution, 1e-15, 1e-3, 10, true, true, true, exact, exact1);
 
 	// Solves the new problem, and then outputs solution and mesh to files.
 	myNewSolution->output_solution(exact);
